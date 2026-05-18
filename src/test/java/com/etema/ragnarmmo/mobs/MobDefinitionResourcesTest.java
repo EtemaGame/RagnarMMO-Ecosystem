@@ -70,7 +70,8 @@ class MobDefinitionResourcesTest {
             "minecraft:zombified_piglin");
 
     private static final Set<String> TOP_LEVEL_FIELDS = Set.of(
-            "entity", "rank", "tier", "level", "base_exp", "job_exp", "ro_stats", "direct_stats", "race", "element", "size");
+            "entity", "rank", "tier", "level", "base_exp", "job_exp", "ro_stats", "direct_stats", "race", "element", "size",
+            "ai", "movement", "loot_behavior", "metamorphosis", "spawn");
     private static final Set<String> RANKS = Set.of("NORMAL", "ELITE", "MINI_BOSS", "BOSS");
     private static final Set<String> RO_STATS_FIELDS = Set.of("str", "agi", "vit", "int", "dex", "luk");
     private static final Set<String> DIRECT_STATS_FIELDS = Set.of(
@@ -147,7 +148,12 @@ class MobDefinitionResourcesTest {
                 new MobDirectStatsBlock(16, 4, 5, 2, 4, 0, 3, null, null, null, 155, 0.35D),
                 "demihuman",
                 "neutral",
-                "medium");
+                "medium",
+                null,
+                null,
+                null,
+                null,
+                null);
 
         MobDefinitionRegistry registry = MobDefinitionRegistry.getInstance();
         var previousTemplatesById = registry.getTemplatesById();

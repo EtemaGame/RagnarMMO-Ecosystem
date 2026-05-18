@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#ragnarmmo:dry_fields",
+  "spawners": [
+    {
+      "type": "ragnarmmo:muka",
+      "weight": 38,
+      "minCount": 1,
+      "maxCount": 3
+    }
+  ]
+}

@@ -4,6 +4,11 @@ import com.etema.ragnarmmo.common.api.mobs.data.MobDefinition;
 import com.etema.ragnarmmo.common.api.mobs.data.MobDirectStatsBlock;
 import com.etema.ragnarmmo.common.api.mobs.data.MobRoStatsBlock;
 import com.etema.ragnarmmo.common.api.mobs.data.MobTemplate;
+import com.etema.ragnarmmo.common.api.mobs.data.RagnarAiFlags;
+import com.etema.ragnarmmo.common.api.mobs.data.RagnarMovementConfig;
+import com.etema.ragnarmmo.common.api.mobs.data.RagnarLootBehavior;
+import com.etema.ragnarmmo.common.api.mobs.data.RagnarMetamorphosis;
+import com.etema.ragnarmmo.common.api.mobs.data.RagnarSpawnDefinition;
 import com.etema.ragnarmmo.common.api.mobs.data.ResolvedMobDefinition;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +56,12 @@ public final class MobDefinitionResolver {
                 mergeDirectStats(template != null ? template.directStats() : null, definition.directStats()),
                 preferPrimary(definition.race(), template != null ? template.race() : null),
                 preferPrimary(definition.element(), template != null ? template.element() : null),
-                preferPrimary(definition.size(), template != null ? template.size() : null));
+                preferPrimary(definition.size(), template != null ? template.size() : null),
+                definition.ai(),
+                definition.movement(),
+                definition.lootBehavior(),
+                definition.metamorphosis(),
+                definition.spawn());
 
         return new MobDefinitionResolutionResult(resolved, validate(resolved));
     }

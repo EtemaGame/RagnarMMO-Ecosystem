@@ -1,0 +1,35 @@
+{
+  "entity": "ragnarmmo:drop",
+  "template": "ragnarmmo:field_mob",
+  "ai": {
+    "aggroType": "PASSIVE",
+    "looter": true,
+    "canMove": true,
+    "canAttack": true,
+    "immobile": false,
+    "retaliates": true
+  },
+  "movement": {
+    "profile": "SLIME_HOP",
+    "speedClass": "SLOW_400"
+  },
+  "loot_behavior": {
+    "pickupRadius": 6.0,
+    "dropLootedItemsOnDeath": true
+  },
+  "spawn": {
+    "naturalSpawn": true,
+    "biomeTags": [
+      "ragnarmmo:dry_fields"
+    ],
+    "weight": 55,
+    "minGroup": 2,
+    "maxGroup": 4,
+    "minY": 55,
+    "maxY": 110,
+    "lightMin": 8,
+    "lightMax": 15,
+    "surfaceOnly": true,
+    "requiresSky": true
+  }
+}

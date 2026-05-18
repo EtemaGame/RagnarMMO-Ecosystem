@@ -21,5 +21,10 @@ public record ResolvedMobDefinition(
         @Nullable MobDirectStatsBlock directStats,
         @Nullable String race,
         @Nullable String element,
-        @Nullable String size) {
+        @Nullable String size,
+        @Nullable RagnarAiFlags ai,
+        @Nullable RagnarMovementConfig movement,
+        @Nullable RagnarLootBehavior lootBehavior,
+        @Nullable RagnarMetamorphosis metamorphosis,
+        @Nullable RagnarSpawnDefinition spawn) {
 }

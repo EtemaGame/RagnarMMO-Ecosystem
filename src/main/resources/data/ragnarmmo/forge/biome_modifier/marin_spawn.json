@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#ragnarmmo:cold_fields",
+  "spawners": [
+    {
+      "type": "ragnarmmo:marin",
+      "weight": 35,
+      "minCount": 1,
+      "maxCount": 3
+    }
+  ]
+}

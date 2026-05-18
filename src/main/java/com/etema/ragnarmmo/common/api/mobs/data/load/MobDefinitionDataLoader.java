@@ -50,8 +50,6 @@ public final class MobDefinitionDataLoader extends SimpleJsonResourceReloadListe
     private static final String DEFINITIONS_FOLDER = "mob_definitions";
     private static final String TEMPLATES_FOLDER = "mob_templates";
 
-    private static final Set<String> DEFINITION_FIELDS = Set.of(
-            "entity", "template", "rank", "tier", "level", "base_exp", "job_exp", "ro_stats", "direct_stats", "race", "element", "size");
     private static final Set<String> TEMPLATE_FIELDS = Set.of(
             "rank", "tier", "level", "base_exp", "job_exp", "ro_stats", "direct_stats", "race", "element", "size");
     private static final Set<String> RO_STATS_FIELDS = Set.of("str", "agi", "vit", "int", "dex", "luk");
@@ -234,24 +232,7 @@ public final class MobDefinitionDataLoader extends SimpleJsonResourceReloadListe
     }
 
     private static MobDefinition parseDefinition(ResourceLocation sourceId, JsonObject json) {
-        validateAllowedFields(sourceId, json, DEFINITION_FIELDS, "definition");
-
-        ResourceLocation entity = parseRequiredResourceLocation(sourceId, json, "entity");
-        ResourceLocation template = parseOptionalResourceLocation(sourceId, json, "template");
-
-        return new MobDefinition(
-                entity,
-                template,
-                parseOptionalRank(sourceId, json, "rank"),
-                parseOptionalTier(sourceId, json, "tier"),
-                parseOptionalInteger(sourceId, json, "level"),
-                parseOptionalInteger(sourceId, json, "base_exp"),
-                parseOptionalInteger(sourceId, json, "job_exp"),
-                parseRoStatsBlock(sourceId, json),
-                parseDirectStatsBlock(sourceId, json),
-                parseOptionalString(sourceId, json, "race"),
-                parseOptionalString(sourceId, json, "element"),
-                parseOptionalString(sourceId, json, "size"));
+        return MobDefinitionParser.parseDefinition(sourceId, json);
     }
 
     private static @Nullable MobRoStatsBlock parseRoStatsBlock(ResourceLocation sourceId, JsonObject json) {
