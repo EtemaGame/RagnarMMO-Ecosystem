@@ -47,8 +47,8 @@ public final class AttributeLimitHelper {
             }
 
             try {
-                // 1.20.1 obfuscated field name for "maxValue"
-                String fieldName = "f_22309_";
+                // Use the mapped field name so dev and production runtimes both resolve it cleanly.
+                String fieldName = "maxValue";
 
                 // Access and set the field
                 var field = ObfuscationReflectionHelper.findField(RangedAttribute.class, fieldName);

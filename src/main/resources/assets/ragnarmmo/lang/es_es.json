@@ -242,6 +242,7 @@
     "job.ragnarmmo.swordsman":  "Espadachín",
     "job.ragnarmmo.thief":  "Ladrón",
     "job.ragnarmmo.wizard":  "Hechicero",
+    "config.jade.plugin_ragnarmmo.mob_profile":  "Perfil de mob",
     "job.ragnarmmo.acolyte.role":  "Soporte / Sanación",
     "job.ragnarmmo.acolyte.primary":  "INT, VIT",
     "job.ragnarmmo.acolyte.desc":  "Sirvientes devotos de lo divino, canalizan poder sagrado para sanar aliados y alejar la oscuridad.",
