@@ -1,0 +1,13 @@
+{
+    "category": "ADVENTURE",
+    "name": "achievement.ragnarmmo.apple_gatherer.name",
+    "description": "achievement.ragnarmmo.apple_gatherer.desc",
+    "trigger_type": "pickup_item",
+    "trigger_id": "minecraft:apple",
+    "required_amount": 20,
+    "points": 10,
+    "title": "title.ragnarmmo.the_forager",
+    "rewards": {
+        "minecraft:golden_apple": 1
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#ragnarmmo:forests",
+  "spawners": [
+    {
+      "type": "ragnarmmo:poporing",
+      "weight": 28,
+      "minCount": 1,
+      "maxCount": 3
+    }
+  ]
+}

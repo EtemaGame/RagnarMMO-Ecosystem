@@ -1,0 +1,32 @@
+{
+  "ragnarmmo:weapons/sword1h/sword": {
+    "requiredBaseLevel": 8,
+    "allowedJobs": ["SWORDSMAN", "MERCHANT"],
+    "cardSlots": 1,
+    "attributeBonuses": { "dex": 1 }
+  },
+  "ragnarmmo:weapons/sword1h/falchion": {
+    "requiredBaseLevel": 12,
+    "allowedJobs": ["SWORDSMAN", "MERCHANT"],
+    "cardSlots": 1,
+    "attributeBonuses": { "str": 1, "dex": 1 }
+  },
+  "ragnarmmo:weapons/sword1h/blade": {
+    "requiredBaseLevel": 16,
+    "allowedJobs": ["SWORDSMAN", "MERCHANT"],
+    "cardSlots": 1,
+    "attributeBonuses": { "vit": 1, "dex": 1 }
+  },
+  "ragnarmmo:weapons/sword1h/curved_sword": {
+    "requiredBaseLevel": 20,
+    "allowedJobs": ["SWORDSMAN", "MERCHANT"],
+    "cardSlots": 2,
+    "attributeBonuses": { "vit": 1, "dex": 2 }
+  },
+  "ragnarmmo:weapons/sword1h/byeollungum": {
+    "requiredBaseLevel": 25,
+    "allowedJobs": ["SWORDSMAN", "MERCHANT"],
+    "cardSlots": 2,
+    "attributeBonuses": { "str": 2, "dex": 1 }
+  }
+}

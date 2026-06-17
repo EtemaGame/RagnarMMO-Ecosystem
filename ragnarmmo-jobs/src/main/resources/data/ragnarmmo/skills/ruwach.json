@@ -1,0 +1,34 @@
+{
+    "id": "ragnarmmo:ruwach",
+    "display_name": "Ruwach",
+    "category": "CLASS_ACTIVE",
+    "tier": "FIRST",
+    "usage": "ACTIVE",
+    "progression": {
+        "max_level": 1,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "costs": {
+        "base_cost": 0,
+        "cost_per_level": 0
+    },
+    "cooldown_ticks": 0,
+    "jobs": [
+        "ACOLYTE"
+    ],
+    "requirements": {},
+    "ui": {
+        "texture": "acolyte/acolyte_ruwach",
+        "grid_x": 1,
+        "grid_y": 0
+    },
+    "reference": {
+        "notes": "Ruwach: RO_ADAPTED hidden reveal pulse with holy damage against revealed enemies."
+    },
+    "level_data": {
+        "1": { "sp_cost": 10, "damage_percent": 145, "reveal_radius": 5, "glow_duration_ticks": 200, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.acolyte.RuwachSkillEffect"
+}

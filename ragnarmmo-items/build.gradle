@@ -1,0 +1,18 @@
+ext.ragnarmmo_mod_id = 'ragnarmmo_items'
+ext.ragnarmmo_mod_name = 'RagnarMMO Items'
+ext.ragnarmmo_mod_description = 'Equipment, weapons, cards, refinement, loot, recipes and utility items without wallet or zeny ownership.'
+ext.ragnarmmo_mod_dependencies = '''
+[[dependencies.ragnarmmo_items]]
+    modId="ragnarmmo_core"
+    mandatory=true
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+'''
+description = 'Equipment, weapons, cards, refinement, loot, recipes and utility items without wallet or zeny ownership.'
+
+apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')
+
+dependencies {
+    api project(':ragnarmmo-core')
+}

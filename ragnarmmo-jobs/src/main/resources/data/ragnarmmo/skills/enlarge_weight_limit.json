@@ -1,0 +1,39 @@
+{
+    "id": "ragnarmmo:enlarge_weight_limit",
+    "display_name": "Enlarge Weight Limit",
+    "category": "CLASS_PASSIVE",
+    "tier": "FIRST",
+    "usage": "PASSIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "jobs": [
+        "MERCHANT"
+    ],
+    "requirements": {},
+    "reference": {
+        "source_name": "RagnarMMO Pre-Renewal Port Policy",
+        "notes": "RO_ADAPTED: canonical Merchant carry capacity passive. Weight bonus is data-driven for Minecraft encumbrance."
+    },
+    "level_data": {
+        "1": { "weight_limit_bonus": 200 },
+        "2": { "weight_limit_bonus": 400 },
+        "3": { "weight_limit_bonus": 600 },
+        "4": { "weight_limit_bonus": 800 },
+        "5": { "weight_limit_bonus": 1000 },
+        "6": { "weight_limit_bonus": 1200 },
+        "7": { "weight_limit_bonus": 1400 },
+        "8": { "weight_limit_bonus": 1600 },
+        "9": { "weight_limit_bonus": 1800 },
+        "10": { "weight_limit_bonus": 2000 }
+    },
+    "ui": {
+        "texture": "merchant/merchant_enlarge_weight_limit",
+        "grid_x": 0,
+        "grid_y": 0
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.merchant.EnlargeWeightLimitSkillEffect"
+}

@@ -1,0 +1,35 @@
+{
+  "entity": "ragnarmmo:poring",
+  "template": "ragnarmmo:field_mob",
+  "ai": {
+    "aggroType": "PASSIVE",
+    "looter": true,
+    "canMove": true,
+    "canAttack": true,
+    "immobile": false,
+    "retaliates": true
+  },
+  "movement": {
+    "profile": "SLIME_HOP",
+    "speedClass": "SLOW_400"
+  },
+  "loot_behavior": {
+    "pickupRadius": 6.0,
+    "dropLootedItemsOnDeath": true
+  },
+  "spawn": {
+    "naturalSpawn": true,
+    "biomeTags": [
+      "ragnarmmo:starter_fields"
+    ],
+    "weight": 70,
+    "minGroup": 2,
+    "maxGroup": 5,
+    "minY": 55,
+    "maxY": 100,
+    "lightMin": 8,
+    "lightMax": 15,
+    "surfaceOnly": true,
+    "requiresSky": false
+  }
+}

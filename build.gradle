@@ -1,171 +1,97 @@
 plugins {
-    id 'eclipse'
-    id 'idea'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'base'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)' apply false
 }
 
-version = mod_version
-group = mod_group_id
+allprojects {
+    group = mod_group_id
+    version = mod_version
 
-base {
-    archivesName = mod_id
-}
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
-
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
-    copyIdeResources = true
-
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            jvmArgs '-Xmx6G', '-Xms6G', '-XX:+UseG1GC', '-XX:+UnlockExperimentalVMOptions'
-        }
-
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
-
-        gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        data {
-            workingDirectory project.file('run-data')
-            args '--mod', mod_id, '--all', '--output', file('src/main/resources/'), '--existing', file('src/main/resources/')
-        }
-    }
-}
-
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-}
-
-sourceSets {
-    main {
-        resources {
-            setSrcDirs(['src/main/resources'])
-        }
-    }
-    test {
-        java {
-            setSrcDirs(['src/test/java'])
-        }
-        resources {
-            setSrcDirs(['src/test/resources'])
-        }
-    }
-}
-
-repositories {
-    maven {
-        name = "GeckoLib"
-        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
-        content {
-            includeGroupByRegex "software\\.bernie.*"
-            includeGroup "com.eliotlash.mclib"
-        }
-    }
-    maven {
-        url = "https://api.modrinth.com/maven"
-    }
-    maven {
-        url = "https://maven.shedaniel.me/"
-    }
-    maven {
-        url "https://www.cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-}
-
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
-    compileOnly fg.deobf("maven.modrinth:jade:${jade_version}")
-    runtimeOnly fg.deobf("maven.modrinth:jade:${jade_version}")
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
-            forge_version: forge_version, forge_version_range: forge_version_range,
-            loader_version_range: loader_version_range,
-            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
-            mod_authors: mod_authors, mod_description: mod_description,
-    ]
-    inputs.properties replaceProperties
-
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
-    }
-}
-
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                'Specification-Title'     : mod_id,
-                'Specification-Vendor'    : mod_authors,
-                'Specification-Version'   : '1',
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-
-    finalizedBy 'reobfJar'
-}
-
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            artifact jar
-        }
-    }
     repositories {
-        maven {
-            url "file://${project.projectDir}/mcmodsrepo"
+        mavenCentral()
+    }
+}
+
+def ecosystemModules = [
+        'ragnarmmo-core',
+        'ragnarmmo-combat',
+        'ragnarmmo-jobs',
+        'ragnarmmo-items',
+        'ragnarmmo-economy',
+        'ragnarmmo-lifeskills',
+        'ragnarmmo-mobs',
+        'ragnarmmo-social',
+        'ragnarmmo-client',
+]
+
+tasks.register('ecosystemStatus') {
+    group = 'ragnarmmo'
+    description = 'Prints the current RagnarMMO ecosystem workspace layout.'
+    doLast {
+        println 'RagnarMMO-Ecosistema'
+        println ' - original-source: original mod source used only as extraction reference'
+        ecosystemModules.each { moduleName ->
+            println " - ${moduleName}: modular target"
         }
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.compilerArgs += ['-Xlint:deprecation']
+tasks.register('modularBuild') {
+    group = 'ragnarmmo'
+    description = 'Builds only the new RagnarMMO modular ecosystem projects.'
+    dependsOn ecosystemModules.collect { ":${it}:build" }
 }
 
-idea {
-    module {
-        excludeDirs += [file('src/test'), file('src/generated')]
+tasks.register('portAudit') {
+    group = 'ragnarmmo'
+    description = 'Prints a non-failing audit of original-source content still waiting to be ported.'
+    doLast {
+        def originalJavaRoot = file('original-source/src/main/java/com/etema/ragnarmmo')
+        def originalResourceRoot = file('original-source/src/main/resources')
+        def modularJavaCount = ecosystemModules.sum { moduleName ->
+            fileTree("${moduleName}/src/main/java") {
+                include '**/*.java'
+            }.files.size()
+        }
+        def modularResourceCount = ecosystemModules.sum { moduleName ->
+            fileTree("${moduleName}/src/main/resources") {
+                include '**/*'
+                exclude '**/.gitkeep'
+            }.files.findAll { it.isFile() }.size()
+        }
+
+        println 'RagnarMMO port audit'
+        println " - original Java files: ${fileTree(originalJavaRoot) { include '**/*.java' }.files.size()}"
+        println " - modular Java files: ${modularJavaCount}"
+        println " - original resource files: ${fileTree(originalResourceRoot) { include '**/*' }.files.findAll { it.isFile() }.size()}"
+        println " - modular source resource files: ${modularResourceCount}"
+        println ''
+        println 'Original Java domains still present:'
+        originalJavaRoot.listFiles()
+                ?.findAll { it.isDirectory() }
+                ?.sort { it.name }
+                ?.each { dir ->
+                    def count = fileTree(dir) { include '**/*.java' }.files.size()
+                    println " - ${dir.name}: ${count}"
+                }
+        println ''
+        println 'This task is informational. Use verifyPortComplete when original-source is expected to be empty.'
     }
 }
 
-test {
-    useJUnitPlatform()
+tasks.register('verifyPortComplete') {
+    group = 'ragnarmmo'
+    description = 'Fails until original-source no longer contains code or resources that must be ported.'
+    doLast {
+        def remainingJava = fileTree('original-source/src/main/java') {
+            include '**/*.java'
+        }.files.size()
+        def remainingResources = fileTree('original-source/src/main/resources') {
+            include '**/*'
+        }.files.findAll { it.isFile() }.size()
+
+        if (remainingJava > 0 || remainingResources > 0) {
+            throw new GradleException("Port incomplete: original-source still has ${remainingJava} Java files and ${remainingResources} resource files.")
+        }
+    }
 }

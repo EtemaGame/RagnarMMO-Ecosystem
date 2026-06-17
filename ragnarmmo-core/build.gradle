@@ -1,0 +1,6 @@
+ext.ragnarmmo_mod_id = 'ragnarmmo_core'
+ext.ragnarmmo_mod_name = 'RagnarMMO Core'
+ext.ragnarmmo_mod_description = 'Shared server-side APIs, stats, progression contracts, configs, commands, networking primitives and events.'
+description = 'Shared server-side APIs, stats, progression contracts, configs, commands, networking primitives and events.'
+
+apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')

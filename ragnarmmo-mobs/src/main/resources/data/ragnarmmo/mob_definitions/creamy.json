@@ -1,0 +1,47 @@
+{
+  "entity": "ragnarmmo:creamy",
+  "template": "ragnarmmo:field_mob",
+  "ai": {
+    "aggroType": "PASSIVE",
+    "looter": false,
+    "canMove": true,
+    "canAttack": true,
+    "immobile": false,
+    "retaliates": true
+  },
+  "movement": {
+    "profile": "BUTTERFLY_FLIGHT",
+    "speedClass": "VERY_FAST_150",
+    "hoverMin": 0.5,
+    "hoverMax": 2.5,
+    "wanderRadius": 6,
+    "leashRadius": 12
+  },
+  "spawn": {
+    "naturalSpawn": true,
+    "biomeTags": [
+      "ragnarmmo:flower_fields",
+      "ragnarmmo:forests"
+    ],
+    "weight": 24,
+    "minGroup": 1,
+    "maxGroup": 3,
+    "minY": 65,
+    "maxY": 140,
+    "lightMin": 9,
+    "lightMax": 15,
+    "surfaceOnly": true,
+    "requiresSky": false,
+    "nearBlocks": {
+      "mode": "PREFER",
+      "radius": 6,
+      "values": [
+        "minecraft:dandelion",
+        "minecraft:poppy",
+        "minecraft:oxeye_daisy",
+        "minecraft:cornflower",
+        "minecraft:azure_bluet"
+      ]
+    }
+  }
+}

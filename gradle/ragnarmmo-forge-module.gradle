@@ -1,0 +1,116 @@
+apply plugin: 'java-library'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+apply plugin: 'net.minecraftforge.gradle'
+
+def ragnarModId = project.ext.ragnarmmo_mod_id
+def ragnarModName = project.ext.ragnarmmo_mod_name
+def ragnarModDescription = project.ext.ragnarmmo_mod_description
+def ragnarModDependencies = project.ext.has('ragnarmmo_mod_dependencies') ? project.ext.ragnarmmo_mod_dependencies : ''
+def ragnarUsesGeckoLib = project.ext.has('ragnarmmo_uses_geckolib') && project.ext.ragnarmmo_uses_geckolib
+def ragnarUsesJade = project.ext.has('ragnarmmo_uses_jade') && project.ext.ragnarmmo_uses_jade
+
+base {
+    archivesName = ragnarModId
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+    copyIdeResources = true
+}
+
+repositories {
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroupByRegex 'software\\.bernie.*'
+            includeGroup 'com.eliotlash.mclib'
+        }
+    }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    if (ragnarUsesGeckoLib) {
+        implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
+    }
+
+    if (ragnarUsesJade) {
+        compileOnly fg.deobf("maven.modrinth:jade:${jade_version}")
+        runtimeOnly fg.deobf("maven.modrinth:jade:${jade_version}")
+    }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from(rootProject.file('gradle/mods.toml')) {
+        into 'META-INF'
+        expand([
+                minecraft_version_range: minecraft_version_range,
+                forge_version_range    : forge_version_range,
+                loader_version_range   : loader_version_range,
+                mod_id                 : ragnarModId,
+                mod_name               : ragnarModName,
+                mod_license            : mod_license,
+                mod_version            : mod_version,
+                mod_authors            : mod_authors,
+                mod_description        : ragnarModDescription,
+                mod_dependencies       : ragnarModDependencies,
+        ])
+    }
+
+    from(rootProject.file('gradle/pack.mcmeta')) {
+        expand([mod_description: ragnarModDescription])
+    }
+
+    inputs.properties([
+            minecraft_version_range: minecraft_version_range,
+            forge_version_range    : forge_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : ragnarModId,
+            mod_name               : ragnarModName,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : ragnarModDescription,
+            mod_dependencies       : ragnarModDependencies,
+    ])
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : ragnarModId,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_authors,
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+
+    finalizedBy 'reobfJar'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:deprecation']
+}
+
+test {
+    useJUnitPlatform()
+}

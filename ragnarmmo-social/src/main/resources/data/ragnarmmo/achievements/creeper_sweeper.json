@@ -1,0 +1,13 @@
+{
+    "category": "BATTLE",
+    "name": "achievement.ragnarmmo.creeper_sweeper.name",
+    "description": "achievement.ragnarmmo.creeper_sweeper.desc",
+    "trigger_type": "kill_mob",
+    "trigger_id": "minecraft:creeper",
+    "required_amount": 20,
+    "points": 30,
+    "title": "title.ragnarmmo.explosive",
+    "rewards": {
+        "minecraft:gunpowder": 10
+    }
+}

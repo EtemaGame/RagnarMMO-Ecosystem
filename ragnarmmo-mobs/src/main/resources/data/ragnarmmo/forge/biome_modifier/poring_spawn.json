@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#ragnarmmo:starter_fields",
+  "spawners": [
+    {
+      "type": "ragnarmmo:poring",
+      "weight": 70,
+      "minCount": 2,
+      "maxCount": 5
+    }
+  ]
+}

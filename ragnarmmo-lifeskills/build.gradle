@@ -1,0 +1,18 @@
+ext.ragnarmmo_mod_id = 'ragnarmmo_lifeskills'
+ext.ragnarmmo_mod_name = 'RagnarMMO Life Skills'
+ext.ragnarmmo_mod_description = 'Mining, woodcutting, excavation, farming, fishing, exploration and progression separated from Jobs.'
+ext.ragnarmmo_mod_dependencies = '''
+[[dependencies.ragnarmmo_lifeskills]]
+    modId="ragnarmmo_core"
+    mandatory=true
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+'''
+description = 'Mining, woodcutting, excavation, farming, fishing, exploration and progression separated from Jobs.'
+
+apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')
+
+dependencies {
+    api project(':ragnarmmo-core')
+}

@@ -27,6 +27,29 @@ Registered in `RagnarCommand`:
 These are player-facing command shortcuts. Keep them unless a release note and
 migration path exists.
 
+Current modular coverage:
+
+- `ragnarmmo-jobs` registers direct `/job current` and `/job change <class>` for the
+  former job-change flow.
+- `ragnarmmo-jobs` registers direct `/jobskills list`, `/jobskills use <skill>` and
+  `/jobskills hotbar <slot> <skill>` for smoke testing modular job skills.
+
+## Job Change Compatibility
+
+Legacy `PacketChangeJob` behavior is represented server-side by
+`JobChangeService` in `ragnarmmo-jobs`.
+
+Preserved rules for the current phase:
+
+- Novice can only change to first classes.
+- Novice must reach the configured Novice Job Lv cap.
+- `ragnarmmo:basic_skill` must be Lv 9.
+- Job Skill Points must be fully spent before changing class.
+- Job ID changes to `ragnarmmo:<first_class>`, Job Lv resets to 1, Job EXP resets to 0.
+- Non-Novice skill levels are cleared during the Novice-to-first-class transition.
+
+Second-class promotion remains intentionally deferred.
+
 ## Mixin Field Aliases
 
 `MerchantOfferMixin` uses obfuscated and named field aliases:

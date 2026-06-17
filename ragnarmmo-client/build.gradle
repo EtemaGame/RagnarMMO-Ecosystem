@@ -1,0 +1,130 @@
+ext.ragnarmmo_mod_id = 'ragnarmmo_client'
+ext.ragnarmmo_mod_name = 'RagnarMMO Client'
+ext.ragnarmmo_mod_description = 'HUD, screens, keybinds, visual hotbar, renderers, tooltips, visual effects, client caches and Jade compatibility.'
+ext.ragnarmmo_uses_jade = false
+ext.ragnarmmo_mod_dependencies = '''
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_core"
+    mandatory=true
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_combat"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_jobs"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_items"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_economy"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_lifeskills"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_mobs"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="ragnarmmo_social"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.ragnarmmo_client]]
+    modId="jade"
+    mandatory=false
+    versionRange="[11,12)"
+    ordering="AFTER"
+    side="BOTH"
+'''
+description = 'HUD, screens, keybinds, visual hotbar, renderers, tooltips, visual effects, client caches and Jade compatibility.'
+
+apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')
+
+dependencies {
+    api project(':ragnarmmo-core')
+    compileOnly project(':ragnarmmo-combat')
+    compileOnly project(':ragnarmmo-jobs')
+    compileOnly project(':ragnarmmo-items')
+    compileOnly project(':ragnarmmo-economy')
+    compileOnly project(':ragnarmmo-lifeskills')
+    compileOnly project(':ragnarmmo-mobs')
+    compileOnly project(':ragnarmmo-social')
+}
+
+[
+        ':ragnarmmo-core',
+        ':ragnarmmo-combat',
+        ':ragnarmmo-jobs',
+        ':ragnarmmo-items',
+        ':ragnarmmo-economy',
+        ':ragnarmmo-lifeskills',
+        ':ragnarmmo-social',
+].each { evaluationDependsOn(it) }
+
+minecraft {
+    runs {
+        client {
+            workingDirectory rootProject.file('run/client-full')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                ragnarmmo_core {
+                    source project(':ragnarmmo-core').sourceSets.main
+                }
+                ragnarmmo_combat {
+                    source project(':ragnarmmo-combat').sourceSets.main
+                }
+                ragnarmmo_jobs {
+                    source project(':ragnarmmo-jobs').sourceSets.main
+                }
+                ragnarmmo_items {
+                    source project(':ragnarmmo-items').sourceSets.main
+                }
+                ragnarmmo_economy {
+                    source project(':ragnarmmo-economy').sourceSets.main
+                }
+                ragnarmmo_lifeskills {
+                    source project(':ragnarmmo-lifeskills').sourceSets.main
+                }
+                ragnarmmo_social {
+                    source project(':ragnarmmo-social').sourceSets.main
+                }
+                ragnarmmo_client {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}

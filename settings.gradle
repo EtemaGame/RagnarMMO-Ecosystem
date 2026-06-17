@@ -13,3 +13,13 @@ plugins {
 }
 
 rootProject.name = 'RagnarMMO-Ecosistema'
+
+include 'ragnarmmo-core'
+include 'ragnarmmo-combat'
+include 'ragnarmmo-jobs'
+include 'ragnarmmo-items'
+include 'ragnarmmo-economy'
+include 'ragnarmmo-lifeskills'
+include 'ragnarmmo-mobs'
+include 'ragnarmmo-social'
+include 'ragnarmmo-client'

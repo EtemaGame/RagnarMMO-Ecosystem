@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#ragnarmmo:dry_fields",
+  "spawners": [
+    {
+      "type": "ragnarmmo:drop",
+      "weight": 55,
+      "minCount": 2,
+      "maxCount": 4
+    }
+  ]
+}
