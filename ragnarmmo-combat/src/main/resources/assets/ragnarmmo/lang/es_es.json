@@ -1,0 +1,9 @@
+{
+  "key.ragnarmmo.toggle_combat": "Alternar modo combate",
+  "message.ragnarmmo.combat_mode.on": "Modo combate activado.",
+  "message.ragnarmmo.combat_mode.off": "Modo combate desactivado.",
+  "message.ragnarmmo.combat_result.hit": "Golpe %s",
+  "message.ragnarmmo.combat_result.crit": "Critico %s",
+  "message.ragnarmmo.combat_result.miss": "Fallo",
+  "message.ragnarmmo.combat_result.dodge": "Esquiva"
+}

@@ -6,15 +6,13 @@ package com.etema.ragnarmmo.skills.api;
  *
  * - NOVICE: Common starter skills available to all
  * - FIRST: 1st job class skills (Swordsman, Mage, etc.)
- * - SECOND: 2nd job class skills
  * - TRANSCENDENT / THIRD / FOURTH: reserved entries for future expansions,
- *   not part of the current pre-renewal core scope
+ *   not part of the current core scope
  * - LIFE: Life skills (Mining, Fishing, etc.)
  */
 public enum SkillTier {
     NOVICE("Novice"),
     FIRST("First Class"),
-    SECOND("Second Class"),
     TRANSCENDENT("Transcendent"),
     THIRD("Third Class"),
     FOURTH("Fourth Class"),

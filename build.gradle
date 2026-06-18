@@ -21,7 +21,6 @@ def ecosystemModules = [
         'ragnarmmo-lifeskills',
         'ragnarmmo-mobs',
         'ragnarmmo-social',
-        'ragnarmmo-client',
 ]
 
 tasks.register('ecosystemStatus') {
@@ -40,6 +39,12 @@ tasks.register('modularBuild') {
     group = 'ragnarmmo'
     description = 'Builds only the new RagnarMMO modular ecosystem projects.'
     dependsOn ecosystemModules.collect { ":${it}:build" }
+}
+
+tasks.register('runClient') {
+    group = 'ragnarmmo'
+    description = 'Launches the modular RagnarMMO client dev run from the core project.'
+    dependsOn ':ragnarmmo-core:runClient'
 }
 
 tasks.register('portAudit') {

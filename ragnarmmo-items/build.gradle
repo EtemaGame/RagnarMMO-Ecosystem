@@ -15,4 +15,5 @@ apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')
 
 dependencies {
     api project(':ragnarmmo-core')
+    api project(':ragnarmmo-economy')
 }

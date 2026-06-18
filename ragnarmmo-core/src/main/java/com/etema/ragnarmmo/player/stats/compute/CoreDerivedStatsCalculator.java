@@ -137,19 +137,19 @@ public final class CoreDerivedStatsCalculator {
 
     private static double hpJobMultiplier(String jobId) {
         return switch (com.etema.ragnarmmo.common.api.jobs.JobType.fromId(jobId)) {
-            case SWORDSMAN, KNIGHT -> 1.5D;
-            case THIEF, MERCHANT, ASSASSIN, BLACKSMITH -> 1.2D;
-            case MAGE, WIZARD -> 0.8D;
+            case SWORDSMAN -> 1.5D;
+            case THIEF, MERCHANT -> 1.2D;
+            case MAGE -> 0.8D;
             default -> 1.0D;
         };
     }
 
     private static double spJobMultiplier(String jobId) {
         return switch (com.etema.ragnarmmo.common.api.jobs.JobType.fromId(jobId)) {
-            case MAGE, WIZARD, ACOLYTE, PRIEST -> 1.5D;
-            case ARCHER, HUNTER -> 1.2D;
-            case THIEF, ASSASSIN -> 0.8D;
-            case SWORDSMAN, KNIGHT -> 0.7D;
+            case MAGE, ACOLYTE -> 1.5D;
+            case ARCHER -> 1.2D;
+            case THIEF -> 0.8D;
+            case SWORDSMAN -> 0.7D;
             default -> 1.0D;
         };
     }

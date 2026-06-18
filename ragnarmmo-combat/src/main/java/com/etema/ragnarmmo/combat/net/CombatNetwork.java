@@ -23,11 +23,25 @@ public final class CombatNetwork {
                 .consumerMainThread(ServerboundRagnarBasicAttackPacket::handle)
                 .add();
 
+        channel.messageBuilder(ServerboundRagnarSkillUsePacket.class, nextId.getAndIncrement(),
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerboundRagnarSkillUsePacket::encode)
+                .decoder(ServerboundRagnarSkillUsePacket::new)
+                .consumerMainThread(ServerboundRagnarSkillUsePacket::handle)
+                .add();
+
         channel.messageBuilder(ClientboundRagnarCombatResultPacket.class, nextId.getAndIncrement(),
                         NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientboundRagnarCombatResultPacket::encode)
                 .decoder(ClientboundRagnarCombatResultPacket::new)
                 .consumerMainThread(ClientboundRagnarCombatResultPacket::handle)
+                .add();
+
+        channel.messageBuilder(ClientboundRagnarCastStatePacket.class, nextId.getAndIncrement(),
+                        NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundRagnarCastStatePacket::encode)
+                .decoder(ClientboundRagnarCastStatePacket::new)
+                .consumerMainThread(ClientboundRagnarCastStatePacket::handle)
                 .add();
 
         registered = true;

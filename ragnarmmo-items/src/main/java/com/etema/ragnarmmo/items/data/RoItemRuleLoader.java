@@ -44,6 +44,16 @@ public class RoItemRuleLoader extends SimpleJsonResourceReloadListener {
         return INSTANCE.ruleSet;
     }
 
+    public static void applyClientSync(Map<ResourceLocation, RoItemRule> itemRules,
+            Map<ResourceLocation, RoItemRule> tagRules,
+            Map<String, Map<CardEquipType, RoItemRule>> modTypeRules) {
+        INSTANCE.ruleSet.clear();
+        itemRules.forEach(INSTANCE.ruleSet::addItemRule);
+        tagRules.forEach(INSTANCE.ruleSet::addTagRule);
+        modTypeRules.forEach((modId, rules) -> rules.forEach((type, rule) -> INSTANCE.ruleSet.addModTypeRule(modId, type, rule)));
+        RoItemRuleResolver.clearCache();
+    }
+
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> resources, ResourceManager resourceManager, ProfilerFiller profiler) {
         ruleSet.clear();

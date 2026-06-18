@@ -1,6 +1,7 @@
 package com.etema.ragnarmmo.jobs;
 
 import com.etema.ragnarmmo.common.net.Network;
+import com.etema.ragnarmmo.skills.api.RagnarSkillDefinitionsAPI;
 import com.etema.ragnarmmo.jobs.command.JobClassCommands;
 import com.etema.ragnarmmo.jobs.command.JobSkillCommands;
 import com.etema.ragnarmmo.jobs.client.JobSkillsClientCache;
@@ -21,6 +22,7 @@ public final class RagnarMMOJobs {
 
     public RagnarMMOJobs() {
         SkillDefinitionRegistry.bootstrap();
+        RagnarSkillDefinitionsAPI.registerAccessor(id -> SkillDefinitionRegistry.get(id).map(def -> (com.etema.ragnarmmo.skills.api.ISkillDefinition) def));
         JobSkillEffectRegistry.bootstrapDefaults();
         DerivedStatsService.registerContributor(JobPassiveStatsContributor.INSTANCE);
         Network.registerPackets(JobSkillsNetwork::register);

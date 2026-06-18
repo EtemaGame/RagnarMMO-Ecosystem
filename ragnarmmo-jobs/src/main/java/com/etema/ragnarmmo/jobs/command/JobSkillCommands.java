@@ -36,11 +36,11 @@ public final class JobSkillCommands {
 
     private static int list(ServerPlayer player) {
         PlayerJobSkillsProvider.get(player).ifPresent(skills -> {
-            player.sendSystemMessage(Component.literal("Learned Job Skills").withStyle(ChatFormatting.GOLD));
+            player.sendSystemMessage(Component.translatable("command.ragnarmmo.jobskills.learned").withStyle(ChatFormatting.GOLD));
             skills.getSkillLevels().entrySet().stream()
                     .sorted(java.util.Map.Entry.comparingByKey())
-                    .forEach(entry -> player.sendSystemMessage(Component.literal(
-                            entry.getKey() + " Lv " + entry.getValue()).withStyle(ChatFormatting.GRAY)));
+                    .forEach(entry -> player.sendSystemMessage(Component.translatable(
+                            "command.ragnarmmo.jobskills.entry", entry.getKey(), entry.getValue()).withStyle(ChatFormatting.GRAY)));
         });
         return 1;
     }
@@ -58,7 +58,7 @@ public final class JobSkillCommands {
         PlayerJobSkillsProvider.get(player).ifPresent(skills -> {
             if (skills.getSkillLevel(id) > 0 && SkillDefinitionRegistry.get(id).map(def -> def.isActive()).orElse(false)) {
                 skills.setHotbarSlot(slot, id);
-                player.sendSystemMessage(Component.literal("Assigned " + id + " to slot " + slot)
+                player.sendSystemMessage(Component.translatable("command.ragnarmmo.jobskills.assigned", id, slot)
                         .withStyle(ChatFormatting.GREEN));
             }
         });

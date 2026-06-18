@@ -12,9 +12,12 @@ import com.etema.ragnarmmo.combat.api.CombatRejectReason;
 import com.etema.ragnarmmo.combat.api.CombatResolution;
 import com.etema.ragnarmmo.combat.api.RagnarAttackRequest;
 import com.etema.ragnarmmo.combat.api.ResolvedTargetCandidate;
+import com.etema.ragnarmmo.combat.contract.CombatContract;
+import com.etema.ragnarmmo.combat.credit.RoKillCreditService;
 import com.etema.ragnarmmo.combat.formula.AccuracyFormulaService;
 import com.etema.ragnarmmo.combat.formula.DamageFormulaService;
 import com.etema.ragnarmmo.combat.formula.DefenseFormulaService;
+import com.etema.ragnarmmo.combat.hand.AttackHandResolver;
 import com.etema.ragnarmmo.combat.state.CombatActorState;
 import com.etema.ragnarmmo.combat.targeting.ServerTargetResolver;
 import com.etema.ragnarmmo.combat.timing.AttackCadenceCalculator;
@@ -36,12 +39,24 @@ public final class RagnarCombatEngine {
     private static final RagnarCombatEngine INSTANCE = new RagnarCombatEngine();
 
     private final Map<UUID, CombatActorState> actorStates = new ConcurrentHashMap<>();
+    private final RagnarCombatFeedbackService feedbackService = new RagnarCombatFeedbackService();
 
     private RagnarCombatEngine() {
     }
 
     public static RagnarCombatEngine get() {
         return INSTANCE;
+    }
+
+    public java.util.List<CombatResolution> handleSkillUseRequest(com.etema.ragnarmmo.combat.api.CombatRequestContext ctx) {
+        if (ctx == null || ctx.actor() == null) {
+            return java.util.List.of();
+        }
+        long nowTick = ctx.actor().serverLevel().getGameTime();
+        CombatActorState actorState = actorStates.computeIfAbsent(ctx.actor().getUUID(), ignored -> new CombatActorState());
+        return new RagnarSkillResolver(new RagnarHitCalculator(), new RagnarDamageCalculator(),
+                new CombatContract(new RagnarHitCalculator(), new RagnarDamageCalculator()))
+                .resolveSkill(ctx, actorState, nowTick);
     }
 
     public BasicAttackOutcome processBasicAttackRequest(ServerPlayer player, RagnarAttackRequest request,
@@ -95,7 +110,7 @@ public final class RagnarCombatEngine {
         }
 
         state.acceptSequence(safeRequest.sequenceId());
-        state.setBasicAttackCooldown(now, AttackCadenceCalculator.computeIntervalTicks(player, weapon, safeRequest.offHand()));
+        state.setBasicAttackCooldown(now, AttackCadenceCalculator.computeIntervalTicks(player, safeRequest.offHand()));
         player.resetAttackStrengthTicker();
         return BasicAttackOutcome.resolved(source, resolutions, targetResults, false);
     }
@@ -134,13 +149,20 @@ public final class RagnarCombatEngine {
 
     private void apply(ServerPlayer attacker, LivingEntity target, CombatResolution resolution) {
         if (!resolution.dealsDamage() || resolution.finalDamage() <= 0.0D) {
+            RoKillCreditService.clearPlayerContribution(attacker, target);
+            feedbackService.sendBasicAttackFeedback(attacker, target, resolution);
             return;
         }
+        var damageSource = attacker.damageSources().playerAttack(attacker);
+        RoKillCreditService.recordPlayerContribution(attacker, target, resolution);
         target.invulnerableTime = 0;
-        boolean damaged = target.hurt(attacker.damageSources().playerAttack(attacker), (float) resolution.finalDamage());
+        boolean damaged = target.hurt(damageSource, (float) resolution.finalDamage());
         if (damaged) {
             target.invulnerableTime = 0;
+        } else {
+            RoKillCreditService.clearPlayerContribution(attacker, target);
         }
+        feedbackService.sendBasicAttackFeedback(attacker, target, resolution);
     }
 
     private static int totalStat(ServerPlayer player, IPlayerStats stats, StatKeys key) {

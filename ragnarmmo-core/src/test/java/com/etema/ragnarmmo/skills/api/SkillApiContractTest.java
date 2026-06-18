@@ -14,7 +14,7 @@ class SkillApiContractTest {
         assertEquals(SkillCategory.MERCHANT, SkillCategory.fromId("merchant"));
         assertNull(SkillCategory.fromId("not_a_job"));
 
-        assertEquals("second", SkillTier.SECOND.getId());
+        assertEquals("first", SkillTier.FIRST.getId());
         assertEquals(SkillTier.LIFE, SkillTier.fromId("life"));
     }
 

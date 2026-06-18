@@ -1,6 +1,8 @@
 package com.etema.ragnarmmo.jobs.data;
 
 import com.etema.ragnarmmo.common.api.jobs.JobType;
+import com.etema.ragnarmmo.skills.api.ISkillDefinition;
+import com.etema.ragnarmmo.skills.api.RagnarSkillDefinitionsAPI;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.resources.ResourceLocation;
@@ -15,8 +17,7 @@ import java.util.Set;
 
 public final class SkillDefinitionRegistry {
     private static final String[] TREE_FILES = {
-            "novice_1", "swordsman_1", "archer_1", "acolyte_1", "thief_1", "mage_1", "merchant_1",
-            "knight_2", "hunter_2", "priest_2", "assassin_2", "wizard_2", "blacksmith_2"
+            "novice_1", "swordsman_1", "archer_1", "acolyte_1", "thief_1", "mage_1", "merchant_1"
     };
 
     private static final Map<ResourceLocation, SkillDefinition> SKILLS = new LinkedHashMap<>();
@@ -34,6 +35,7 @@ public final class SkillDefinitionRegistry {
         for (String file : TREE_FILES) {
             loadTree(loader, file);
         }
+        RagnarSkillDefinitionsAPI.registerAccessor(id -> get(id).map(def -> (ISkillDefinition) def));
         bootstrapped = true;
     }
 

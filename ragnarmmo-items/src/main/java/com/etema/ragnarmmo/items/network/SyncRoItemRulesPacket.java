@@ -1,0 +1,195 @@
+package com.etema.ragnarmmo.items.network;
+
+import com.etema.ragnarmmo.items.cards.CardEquipType;
+import com.etema.ragnarmmo.items.data.RoCombatProfile;
+import com.etema.ragnarmmo.items.data.RoItemRule;
+import com.etema.ragnarmmo.items.data.RoItemRuleSet;
+import com.etema.ragnarmmo.items.data.RoItemRuleLoader;
+import com.etema.ragnarmmo.common.api.jobs.JobType;
+import com.etema.ragnarmmo.common.api.stats.StatKeys;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+
+public class SyncRoItemRulesPacket {
+    private final Map<ResourceLocation, RoItemRule> itemRules;
+    private final Map<ResourceLocation, RoItemRule> tagRules;
+    private final Map<String, Map<CardEquipType, RoItemRule>> modTypeRules;
+
+    public SyncRoItemRulesPacket(RoItemRuleSet ruleSet) {
+        this(ruleSet.getItemRules(), ruleSet.getTagRules(), ruleSet.getModTypeRules());
+    }
+
+    public SyncRoItemRulesPacket(Map<ResourceLocation, RoItemRule> itemRules,
+            Map<ResourceLocation, RoItemRule> tagRules,
+            Map<String, Map<CardEquipType, RoItemRule>> modTypeRules) {
+        this.itemRules = new HashMap<>(itemRules);
+        this.tagRules = new HashMap<>(tagRules);
+        this.modTypeRules = new HashMap<>();
+        modTypeRules.forEach((modId, rules) -> {
+            Map<CardEquipType, RoItemRule> byType = new EnumMap<>(CardEquipType.class);
+            byType.putAll(rules);
+            this.modTypeRules.put(modId, byType);
+        });
+    }
+
+    public static void encode(SyncRoItemRulesPacket msg, FriendlyByteBuf buf) {
+        buf.writeVarInt(msg.itemRules.size());
+        for (var entry : msg.itemRules.entrySet()) {
+            buf.writeResourceLocation(entry.getKey());
+            encodeRule(buf, entry.getValue());
+        }
+
+        buf.writeVarInt(msg.tagRules.size());
+        for (var entry : msg.tagRules.entrySet()) {
+            buf.writeResourceLocation(entry.getKey());
+            encodeRule(buf, entry.getValue());
+        }
+
+        buf.writeVarInt(msg.modTypeRules.size());
+        for (var modEntry : msg.modTypeRules.entrySet()) {
+            buf.writeUtf(modEntry.getKey());
+            buf.writeVarInt(modEntry.getValue().size());
+            for (var typeEntry : modEntry.getValue().entrySet()) {
+                buf.writeEnum(typeEntry.getKey());
+                encodeRule(buf, typeEntry.getValue());
+            }
+        }
+    }
+
+    private static void encodeRule(FriendlyByteBuf buf, RoItemRule rule) {
+        buf.writeBoolean(rule.displayName() != null);
+        if (rule.displayName() != null) {
+            buf.writeUtf(rule.displayName());
+        }
+        buf.writeVarInt(rule.requiredBaseLevel());
+        buf.writeVarInt(rule.cardSlots());
+        buf.writeBoolean(rule.showTooltip());
+        encodeCombatProfile(buf, rule.combatProfile());
+
+        Map<StatKeys, Integer> bonuses = rule.attributeBonuses();
+        buf.writeVarInt(bonuses.size());
+        for (var entry : bonuses.entrySet()) {
+            buf.writeEnum(entry.getKey());
+            buf.writeVarInt(entry.getValue());
+        }
+
+        Set<JobType> jobs = rule.allowedJobs();
+        buf.writeVarInt(jobs.size());
+        for (JobType job : jobs) {
+            buf.writeEnum(job);
+        }
+    }
+
+    private static void encodeCombatProfile(FriendlyByteBuf buf, RoCombatProfile profile) {
+        RoCombatProfile combatProfile = profile != null ? profile : RoCombatProfile.EMPTY;
+        buf.writeEnum(combatProfile.weaponMode());
+        buf.writeDouble(combatProfile.atk());
+        buf.writeDouble(combatProfile.matk());
+        buf.writeVarInt(combatProfile.aspd());
+        buf.writeDouble(combatProfile.range());
+        buf.writeVarInt(combatProfile.drawTicks());
+        buf.writeFloat(combatProfile.projectileVelocity());
+        writeStringSet(buf, combatProfile.atkAttributeIds());
+        writeStringSet(buf, combatProfile.matkAttributeIds());
+        writeStringSet(buf, combatProfile.aspdAttributeIds());
+        writeStringSet(buf, combatProfile.rangeAttributeIds());
+    }
+
+    private static void writeStringSet(FriendlyByteBuf buf, Set<String> values) {
+        buf.writeVarInt(values.size());
+        for (String value : values) {
+            buf.writeUtf(value);
+        }
+    }
+
+    public static SyncRoItemRulesPacket decode(FriendlyByteBuf buf) {
+        int itemCount = buf.readVarInt();
+        Map<ResourceLocation, RoItemRule> itemRules = new HashMap<>();
+        for (int i = 0; i < itemCount; i++) {
+            itemRules.put(buf.readResourceLocation(), decodeRule(buf));
+        }
+
+        int tagCount = buf.readVarInt();
+        Map<ResourceLocation, RoItemRule> tagRules = new HashMap<>();
+        for (int i = 0; i < tagCount; i++) {
+            tagRules.put(buf.readResourceLocation(), decodeRule(buf));
+        }
+
+        int modCount = buf.readVarInt();
+        Map<String, Map<CardEquipType, RoItemRule>> modTypeRules = new HashMap<>();
+        for (int i = 0; i < modCount; i++) {
+            String modId = buf.readUtf();
+            int typeCount = buf.readVarInt();
+            Map<CardEquipType, RoItemRule> byType = new EnumMap<>(CardEquipType.class);
+            for (int j = 0; j < typeCount; j++) {
+                byType.put(buf.readEnum(CardEquipType.class), decodeRule(buf));
+            }
+            modTypeRules.put(modId, byType);
+        }
+
+        return new SyncRoItemRulesPacket(itemRules, tagRules, modTypeRules);
+    }
+
+    private static RoItemRule decodeRule(FriendlyByteBuf buf) {
+        String displayName = null;
+        if (buf.readBoolean()) {
+            displayName = buf.readUtf();
+        }
+        int requiredBaseLevel = buf.readVarInt();
+        int cardSlots = buf.readVarInt();
+        boolean showTooltip = buf.readBoolean();
+        RoCombatProfile combatProfile = decodeCombatProfile(buf);
+
+        int bonusCount = buf.readVarInt();
+        Map<StatKeys, Integer> bonuses = new EnumMap<>(StatKeys.class);
+        for (int i = 0; i < bonusCount; i++) {
+            bonuses.put(buf.readEnum(StatKeys.class), buf.readVarInt());
+        }
+
+        int jobCount = buf.readVarInt();
+        Set<JobType> jobs = EnumSet.noneOf(JobType.class);
+        for (int i = 0; i < jobCount; i++) {
+            jobs.add(buf.readEnum(JobType.class));
+        }
+
+        return new RoItemRule(displayName, bonuses, requiredBaseLevel, jobs, cardSlots, showTooltip, combatProfile);
+    }
+
+    private static RoCombatProfile decodeCombatProfile(FriendlyByteBuf buf) {
+        return new RoCombatProfile(
+                buf.readEnum(RoCombatProfile.WeaponMode.class),
+                buf.readDouble(),
+                buf.readDouble(),
+                buf.readVarInt(),
+                buf.readDouble(),
+                buf.readVarInt(),
+                buf.readFloat(),
+                readStringSet(buf),
+                readStringSet(buf),
+                readStringSet(buf),
+                readStringSet(buf));
+    }
+
+    private static Set<String> readStringSet(FriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        Set<String> values = new java.util.LinkedHashSet<>();
+        for (int i = 0; i < count; i++) {
+            values.add(buf.readUtf());
+        }
+        return values;
+    }
+
+    public static void handle(SyncRoItemRulesPacket msg, Supplier<NetworkEvent.Context> ctxSup) {
+        NetworkEvent.Context ctx = ctxSup.get();
+        ctx.enqueueWork(() -> RoItemRuleLoader.applyClientSync(msg.itemRules, msg.tagRules, msg.modTypeRules));
+        ctx.setPacketHandled(true);
+    }
+}

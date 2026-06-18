@@ -9,22 +9,13 @@ public enum SkillCategory {
     LIFE("Life Skill"),
     MISC("Misc"),
     
-    // Core Job Categories
     NOVICE("Novice"),
     SWORDSMAN("Swordsman"),
     MAGE("Mage"),
     ARCHER("Archer"),
     THIEF("Thief"),
     MERCHANT("Merchant"),
-    ACOLYTE("Acolyte"),
-    
-    // Advanced Job Categories
-    KNIGHT("Knight"),
-    WIZARD("Wizard"),
-    HUNTER("Hunter"),
-    ASSASSIN("Assassin"),
-    BLACKSMITH("Blacksmith"),
-    PRIEST("Priest");
+    ACOLYTE("Acolyte");
 
     private final String displayName;
 

@@ -22,13 +22,12 @@ public enum JobType {
     MERCHANT("Merchant"),
     ACOLYTE("Acolyte"),
 
-    // Second Classes
-    WIZARD("Wizard"), // Mage -> Wizard progression
-    PRIEST("Priest"), // Acolyte -> Priest progression
-    KNIGHT("Knight"), // Swordsman -> Knight progression
-    HUNTER("Hunter"), // Archer -> Hunter progression
-    ASSASSIN("Assassin"), // Thief -> Assassin progression
-    BLACKSMITH("Blacksmith"); // Merchant -> Blacksmith progression
+    WIZARD("Wizard"),
+    PRIEST("Priest"),
+    KNIGHT("Knight"),
+    HUNTER("Hunter"),
+    ASSASSIN("Assassin"),
+    BLACKSMITH("Blacksmith");
 
     private final String displayName;
     private final Map<ResourceLocation, Double> xpMultipliers;
@@ -105,25 +104,6 @@ public enum JobType {
                 classTreeSkills.add(skillId("overcharge"));
                 classTreeSkills.add(skillId("business_mind"));
             }
-            case WIZARD -> {
-                // Second Class - uses dynamic skill tree system from wizard_2.json
-                // Skills are defined in data/ragnarmmo/skills/ and loaded dynamically
-            }
-            case PRIEST -> {
-                // Second Class - uses dynamic skill tree system from priest_2.json
-            }
-            case KNIGHT -> {
-                // Second Class - uses dynamic skill tree system from knight_2.json
-            }
-            case HUNTER -> {
-                // Second Class - uses dynamic skill tree system from hunter_2.json
-            }
-            case ASSASSIN -> {
-                // Second Class - uses dynamic skill tree system from assassin_2.json
-            }
-            case BLACKSMITH -> {
-                // Second Class - uses dynamic skill tree system from blacksmith_2.json
-            }
         }
     }
 
@@ -148,30 +128,7 @@ public enum JobType {
      * @return Set of allowed skill ResourceLocations
      */
     public Set<ResourceLocation> getAllowedSkillIds() {
-        if (!classTreeSkills.isEmpty()) {
-            return Set.copyOf(classTreeSkills);
-        }
-        return switch (this) {
-            case KNIGHT -> skillIds(
-                    "sword_mastery", "increase_hp_recovery", "bash", "provoke",
-                    "two_hand_mastery", "magnum_break", "endure");
-            case WIZARD -> skillIds(
-                    "increase_sp_recovery", "sight", "napalm_beat", "soul_strike", "safety_wall",
-                    "cold_bolt", "frost_diver", "stone_curse", "fire_bolt", "fire_ball",
-                    "fire_wall", "lightning_bolt", "thunder_storm");
-            case HUNTER -> skillIds(
-                    "owls_eye", "vultures_eye", "improve_concentration", "double_strafe", "arrow_shower");
-            case ASSASSIN -> skillIds(
-                    "double_attack", "improve_dodge", "steal", "hiding", "envenom", "detoxify");
-            case BLACKSMITH -> skillIds(
-                    "enlarge_weight_limit", "discount", "overcharge", "pushcart",
-                    "vending", "buying_store", "identify", "mammonite");
-            case PRIEST -> skillIds(
-                    "divine_protection", "demon_bane", "angelus", "blessing", "heal",
-                    "increase_agi", "decrease_agi", "cure", "ruwach", "teleportation",
-                    "warp_portal", "pneuma", "aqua_benedicta", "holy_light", "signum_crucis");
-            default -> Set.copyOf(classTreeSkills);
-        };
+        return Set.copyOf(classTreeSkills);
     }
 
     private static Set<ResourceLocation> skillIds(String... paths) {
@@ -190,7 +147,7 @@ public enum JobType {
      * Returns true if this job is a magical class (uses Mana).
      */
     public boolean isMagical() {
-        return this == MAGE || this == ACOLYTE || this == WIZARD || this == PRIEST;
+        return this == MAGE || this == ACOLYTE;
     }
 
     /**
@@ -242,36 +199,27 @@ public enum JobType {
     public static final Set<JobType> FIRST_CLASSES = Set.of(
             SWORDSMAN, MAGE, ARCHER, THIEF, MERCHANT, ACOLYTE);
 
-    /** Set of all Second Classes. */
-    public static final Set<JobType> SECOND_CLASSES = Set.of(
-            WIZARD, PRIEST, KNIGHT, HUNTER, ASSASSIN, BLACKSMITH);
-
     /**
      * Returns the tier of this job in the class hierarchy.
-     * 0 = Novice, 1 = 1st class, 2 = 2nd class.
+     * 0 = Novice, 1 = first class, 2 = legacy advanced class.
      */
     public int getTier() {
         return switch (this) {
             case NOVICE -> 0;
             case SWORDSMAN, MAGE, ARCHER, THIEF, MERCHANT, ACOLYTE -> 1;
-            case WIZARD, PRIEST, KNIGHT, HUNTER, ASSASSIN, BLACKSMITH -> 2;
+            default -> 0;
         };
     }
 
     /**
      * Returns the prerequisite (parent) job needed to reach this class.
-     * Returns null for NOVICE.
+     * Returns null for NOVICE and unsupported legacy classes.
      */
     public JobType getParent() {
         return switch (this) {
             case NOVICE -> null;
             case SWORDSMAN, MAGE, ARCHER, THIEF, MERCHANT, ACOLYTE -> NOVICE;
-            case KNIGHT -> SWORDSMAN;
-            case WIZARD -> MAGE;
-            case HUNTER -> ARCHER;
-            case PRIEST -> ACOLYTE;
-            case ASSASSIN -> THIEF;
-            case BLACKSMITH -> MERCHANT;
+            default -> null;
         };
     }
 
@@ -282,28 +230,18 @@ public enum JobType {
     public List<JobType> getPromotions() {
         return switch (this) {
             case NOVICE -> List.of(SWORDSMAN, MAGE, ARCHER, THIEF, MERCHANT, ACOLYTE);
-            case SWORDSMAN -> List.of(KNIGHT);
-            case MAGE -> List.of(WIZARD);
-            case ARCHER -> List.of(HUNTER);
-            case THIEF -> List.of(ASSASSIN);
-            case MERCHANT -> List.of(BLACKSMITH);
-            case ACOLYTE -> List.of(PRIEST);
-            // Second Classes have no further promotions yet
-            case KNIGHT, WIZARD, HUNTER, PRIEST, ASSASSIN, BLACKSMITH -> List.of();
+            default -> List.of();
         };
     }
 
     /**
-     * Resolves the First Class ancestor for any job.
-     * - NOVICE → null
-     * - First Class → itself
-     * - Second Class → its parent (the First Class)
+     * Resolves the first-class ancestor for any job.
      */
     public JobType getFirstClassAncestor() {
         return switch (getTier()) {
             case 0 -> null;
             case 1 -> this;
-            default -> getParent(); // Second Class parent is always First Class
+            default -> getParent();
         };
     }
 

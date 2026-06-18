@@ -1,8 +1,10 @@
 package com.etema.ragnarmmo.items;
 
+import com.etema.ragnarmmo.common.net.Network;
 import com.etema.ragnarmmo.items.cards.RagnarCardItems;
 import com.etema.ragnarmmo.items.loot.RagnarLootModifiers;
 import com.etema.ragnarmmo.items.runtime.ItemDerivedStatsContributor;
+import com.etema.ragnarmmo.items.network.RoItemsNetwork;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -12,9 +14,8 @@ public final class RagnarMMOItems {
 
     public RagnarMMOItems() {
         var modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        UtilityItems.register(modBus);
-        RagnarCardItems.register(modBus);
-        RagnarLootModifiers.register(modBus);
+        ItemsModule.init(modBus);
+        Network.registerPackets(RoItemsNetwork::register);
         ItemDerivedStatsContributor.register();
     }
 }

@@ -1,6 +1,7 @@
 package com.etema.ragnarmmo.jobs.data;
 
 import com.etema.ragnarmmo.common.api.jobs.JobType;
+import com.etema.ragnarmmo.skills.api.ISkillDefinition;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
@@ -21,27 +22,20 @@ public record SkillDefinition(
         int costPerLevel,
         Map<ResourceLocation, Integer> requirements,
         Map<Integer, Map<String, Double>> levelData,
-        Set<JobType> jobs) {
-    public boolean isActive() {
-        return "ACTIVE".equalsIgnoreCase(usage) || category.toUpperCase(java.util.Locale.ROOT).contains("ACTIVE");
-    }
-
-    public int resourceCost(int level) {
-        return getLevelInt("sp_cost", level, baseCost + Math.max(0, level - 1) * costPerLevel);
-    }
-
-    public int getLevelInt(String key, int level, int fallback) {
-        return (int) Math.round(getLevelDouble(key, level, fallback));
-    }
-
-    public double getLevelDouble(String key, int level, double fallback) {
-        Map<String, Double> values = levelData.get(level);
-        if (values == null) {
-            values = levelData.get(Math.max(1, Math.min(maxLevel, level)));
-        }
-        if (values == null) {
-            return fallback;
-        }
-        return values.getOrDefault(key, fallback);
-    }
+        Set<JobType> jobs) implements ISkillDefinition {
+    @Override public ResourceLocation getId() { return id; }
+    @Override public String getDisplayName() { return displayName; }
+    @Override public String getCategory() { return category; }
+    @Override public String getTier() { return tier; }
+    @Override public String getUsage() { return usage; }
+    @Override public int getMaxLevel() { return maxLevel; }
+    @Override public int getUpgradeCost() { return upgradeCost; }
+    @Override public boolean canUpgradeWithPoints() { return canUpgradeWithPoints; }
+    @Override public int getCooldownTicks() { return cooldownTicks; }
+    @Override public int getCastDelayTicks() { return castDelayTicks; }
+    @Override public int getBaseCost() { return baseCost; }
+    @Override public int getCostPerLevel() { return costPerLevel; }
+    @Override public Map<ResourceLocation, Integer> getRequirements() { return requirements; }
+    @Override public Map<Integer, Map<String, Double>> getLevelDataMap() { return levelData; }
+    @Override public Set<JobType> getJobs() { return jobs; }
 }

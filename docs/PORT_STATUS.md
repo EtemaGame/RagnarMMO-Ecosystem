@@ -50,11 +50,17 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 - Recipes de `elunium` y `oridecon`.
 - Loot modifier de cards con aliases `ragnarmmo:skill_loot` y `ragnarmmo:ragnar_loot`.
 - Tags de items.
+- Hooks portados para restricciones/equipamiento/combate/hotbar, revalidacion de stats y mensajes de requisito.
+- Comandos de debug de items/refine portados.
+- Tooltips cliente para items y cards portados en el nuevo layout modular.
+- Snapshot de proyectiles y helper de skills de proyectil portados en versiones modulares.
 
 ### Economy
 
 - Zeny fisico legacy y recipes de conversion como compatibilidad inicial.
-- API abstracta vive en `core`; wallet real aun falta.
+- Wallet real, capability persistente y sync cliente/servidor.
+- Money bag UI/acciones para depositar y retirar zeny.
+- API abstracta vive en `core`; comercio y transacciones avanzadas aun pueden crecer encima de esta base.
 
 ### Mobs
 
@@ -122,7 +128,7 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 - Implementar `core` universal mob profile/scaling: clasificacion hostil/neutral/pasivo/boss, configs por entidad/tag/bioma/dimension/estructura, aplicacion de atributos runtime y sync minimo para target HUD.
 - Completar combat runtime avanzado: tuning de auto-attack client-side, cast, skill packets, status, aggro, kill credit y contratos para skills/mobs.
 - Port funcional completo de mobs: IA, profiles, stats, drops, boss/world state.
-- Wallet/currency real, transactions, money bag actions y comercio.
+- Comercio y extensiones economicas avanzadas sobre la wallet base.
 - Life Skills: migrar/aislar efectos de las antiguas `skills/job/life` si siguen siendo necesarios como acciones activables.
 - Social: enriquecer bestiary con integraciones opcionales de mobs/items/economy para stats, cards y recompensas dinamicas.
 - Client: portar renderers/effects runtime completos, entity renderers/modelos GeckoLib, pantallas de economy/items y configuracion avanzada de HUD.
@@ -136,7 +142,7 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 - `./gradlew.bat modularBuild --quiet`
 - `./gradlew.bat portAudit --quiet`
 - `./gradlew.bat verifyPortComplete`
-- `./gradlew.bat :ragnarmmo-client:runClient`
+- `./gradlew.bat runClient`
 
 Nota: el `runClient` de smoke test carga todos los modulos funcionales salvo `ragnarmmo-mobs` por ahora, porque sus sprites/renderers aun no estan portados. Jade tambien queda fuera del runtime dev hasta revisar compatibilidad de mixins en userdev.
 

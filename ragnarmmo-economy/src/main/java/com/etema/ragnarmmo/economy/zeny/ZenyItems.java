@@ -26,7 +26,7 @@ public final class ZenyItems {
     public static final RegistryObject<Item> GOLD_ZENY = ITEMS.register("others/zeny/gold_zeny",
             () -> new ZenyItem(new Item.Properties().stacksTo(64), 81));
     public static final RegistryObject<Item> MONEY_BAG = ITEMS.register("others/zeny/money_bag",
-            () -> new Item(new Item.Properties().stacksTo(1)));
+            () -> new MoneyBagItem(new Item.Properties().stacksTo(1)));
 
     private ZenyItems() {
     }
