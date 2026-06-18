@@ -1,5 +1,7 @@
 package com.etema.ragnarmmo.combat.formula;
 
+import com.etema.ragnarmmo.combat.element.ElementType;
+
 import java.util.Random;
 
 public final class DamageFormulaService {
@@ -68,6 +70,68 @@ public final class DamageFormulaService {
     public static double critDamageMultiplier() {
         return CRIT_BASE_MULT;
     }
+
+    public static double elementMultiplier(ElementType attack, ElementType defense) {
+        return elementMultiplier(attack, defense, 1);
+    }
+
+    public static double elementMultiplier(ElementType attack, ElementType defense, int defenseLevel) {
+        ElementType atk = attack == null ? ElementType.NEUTRAL : attack;
+        ElementType def = defense == null ? ElementType.NEUTRAL : defense;
+        int levelIndex = Math.max(1, Math.min(4, defenseLevel)) - 1;
+        return PRE_RENEWAL_ELEMENT_PERCENT[levelIndex][atk.ordinal()][def.ordinal()] / 100.0D;
+    }
+
+    private static final int[][][] PRE_RENEWAL_ELEMENT_PERCENT = {
+            {
+                    {100, 100, 100, 100, 100, 100, 100, 100, 25, 100},
+                    {100, 25, 100, 150, 50, 100, 75, 100, 100, 100},
+                    {100, 100, 100, 50, 150, 100, 75, 100, 100, 100},
+                    {100, 50, 150, 25, 100, 100, 75, 100, 100, 125},
+                    {100, 175, 50, 100, 25, 100, 75, 100, 100, 100},
+                    {100, 100, 125, 125, 125, 0, 75, 50, 100, -25},
+                    {100, 100, 100, 100, 100, 100, 0, 125, 100, 150},
+                    {100, 100, 100, 100, 100, 50, 125, 0, 100, -25},
+                    {25, 100, 100, 100, 100, 100, 75, 75, 125, 100},
+                    {100, 100, 100, 100, 100, 50, 100, 0, 100, 0}
+            },
+            {
+                    {100, 100, 100, 100, 100, 100, 100, 100, 25, 100},
+                    {100, 0, 100, 175, 25, 100, 50, 75, 100, 100},
+                    {100, 100, 50, 25, 175, 100, 50, 75, 100, 100},
+                    {100, 25, 175, 0, 100, 100, 50, 75, 100, 150},
+                    {100, 175, 25, 100, 0, 100, 50, 75, 100, 100},
+                    {100, 75, 125, 125, 125, 0, 50, 25, 75, -50},
+                    {100, 100, 100, 100, 100, 100, -25, 150, 100, 175},
+                    {100, 100, 100, 100, 100, 25, 150, -25, 100, -50},
+                    {0, 75, 75, 75, 75, 75, 50, 50, 150, 125},
+                    {100, 75, 75, 75, 75, 25, 125, 0, 100, 0}
+            },
+            {
+                    {100, 100, 100, 100, 100, 100, 100, 100, 0, 100},
+                    {100, -25, 100, 200, 0, 100, 25, 50, 100, 125},
+                    {100, 100, 0, 0, 200, 100, 25, 50, 100, 75},
+                    {100, 0, 200, -25, 100, 100, 25, 50, 100, 175},
+                    {100, 200, 0, 100, -25, 100, 25, 50, 100, 100},
+                    {100, 50, 100, 100, 100, 0, 25, 0, 50, -75},
+                    {100, 100, 100, 100, 100, 125, -50, 175, 100, 200},
+                    {100, 100, 100, 100, 100, 0, 175, -50, 100, -75},
+                    {0, 50, 50, 50, 50, 50, 25, 25, 175, 150},
+                    {100, 50, 50, 50, 50, 0, 150, 0, 100, 0}
+            },
+            {
+                    {100, 100, 100, 100, 100, 100, 100, 100, 0, 100},
+                    {100, -50, 100, 200, 0, 75, 0, 25, 100, 150},
+                    {100, 100, -25, 0, 200, 75, 0, 25, 100, 50},
+                    {100, 0, 200, -50, 100, 75, 0, 25, 100, 200},
+                    {100, 200, 0, 100, -50, 75, 0, 25, 100, 100},
+                    {100, 25, 75, 75, 75, 0, 0, -25, 25, -100},
+                    {100, 75, 75, 75, 75, 125, -100, 200, 100, 200},
+                    {100, 75, 75, 75, 75, -25, 200, -100, 100, -100},
+                    {0, 25, 25, 25, 25, 25, 0, 0, 200, 175},
+                    {100, 25, 25, 25, 25, -25, 175, 0, 100, 0}
+            }
+    };
 
     private static double damageVarianceFloorMultiplier(int dex, int luk) {
         double dexFactor = FormulaUtil.clamp(0, 1, dex / DEX_VARIANCE_DIVISOR);

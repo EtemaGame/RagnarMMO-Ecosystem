@@ -57,8 +57,14 @@ public class CardCompoundPacket {
                 return;
             }
 
+            var cardModifiers = cardStack.getTag() != null && cardStack.getTag().contains(CardItem.TAG_CARD_MODIFIERS)
+                    ? cardStack.getTag().getCompound(CardItem.TAG_CARD_MODIFIERS).copy()
+                    : null;
             cardStack.shrink(1);
             RoItemNbtHelper.addSlottedCard(equipStack, cardId);
+            if (cardModifiers != null) {
+                RoItemNbtHelper.addCompoundedCardModifiers(equipStack, cardModifiers);
+            }
             player.level().playSound(null, player.blockPosition(), SoundEvents.SMITHING_TABLE_USE, SoundSource.PLAYERS, 1.0F, 1.0F);
         });
         ctx.setPacketHandled(true);

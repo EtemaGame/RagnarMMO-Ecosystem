@@ -212,7 +212,7 @@ public class BestiaryScreen extends Screen {
             y = drawWrapped(g, Component.translatable("gui.ragnarmmo.bestiary.no_authored_stats"), x, y, width, 0xFF9AA4B5);
             return y + 18;
         }
-        y = drawWrapped(g, Component.literal("Lv " + stats.level() + " | " + stats.rank() + " | " + stats.tier()), x, y, width, 0xFFCDD3DF);
+        y = drawWrapped(g, Component.literal("Lv " + stats.level() + " | " + stats.rank()), x, y, width, 0xFFCDD3DF);
         y = drawWrapped(g, Component.literal(stats.race() + " / " + stats.element() + " / " + stats.size()), x, y, width, 0xFFCDD3DF);
         y = drawWrapped(g, Component.literal("HP " + stats.maxHp() + " | ATK " + stats.atkMin() + "-" + stats.atkMax()
                 + " | DEF " + stats.def() + " | MDEF " + stats.mdef()), x, y, width, 0xFFCDD3DF);

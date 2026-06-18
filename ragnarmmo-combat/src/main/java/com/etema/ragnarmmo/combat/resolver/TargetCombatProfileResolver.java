@@ -21,6 +21,6 @@ public final class TargetCombatProfileResolver {
         if (entity instanceof ServerPlayer player) {
             return java.util.OptionalInt.of(Math.max(1, player.experienceLevel));
         }
-        return java.util.OptionalInt.empty();
+        return MobCombatProfileResolver.tryGetResolvedMobLevel(entity);
     }
 }

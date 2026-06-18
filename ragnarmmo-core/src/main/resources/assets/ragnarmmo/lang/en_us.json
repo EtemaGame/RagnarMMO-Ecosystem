@@ -26,5 +26,10 @@
   "stat.ragnarmmo.vit": "Vitality",
   "stat.ragnarmmo.int": "Intelligence",
   "stat.ragnarmmo.dex": "Dexterity",
-  "stat.ragnarmmo.luk": "Luck"
+  "stat.ragnarmmo.luk": "Luck",
+  "message.ragnarmmo.exp_gain_dual": "Base EXP +%s | Job EXP +%s for defeating %s",
+  "message.ragnarmmo.exp_loss_death_dual": "You lost %s Base EXP and %s Job EXP due to death.",
+  "message.ragnarmmo.level_up": "Level Up! (+%s levels)",
+  "message.ragnarmmo.job_level_up": "Job Level +%s",
+  "party.xp.shared": "Shared EXP +%s from %s"
 }

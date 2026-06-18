@@ -29,10 +29,9 @@ migration path exists.
 
 Current modular coverage:
 
-- `ragnarmmo-jobs` registers direct `/job current` and `/job change <class>` for the
-  former job-change flow.
-- `ragnarmmo-jobs` registers direct `/jobskills list`, `/jobskills use <skill>` and
-  `/jobskills hotbar <slot> <skill>` for smoke testing modular job skills.
+- `ragnarmmo-jobs` no longer registers direct player-facing job commands.
+- Job viewing, job change, skill leveling and skill hotbar assignment are handled through UI/packets.
+- Future `/jobs` or debug commands should be purpose-built instead of restoring the old smoke-test commands.
 
 ## Job Change Compatibility
 

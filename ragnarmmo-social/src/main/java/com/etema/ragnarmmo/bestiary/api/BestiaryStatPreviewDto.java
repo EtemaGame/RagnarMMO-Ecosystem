@@ -6,7 +6,6 @@ public record BestiaryStatPreviewDto(
         boolean hasAuthoredStats,
         int level,
         String rank,
-        String tier,
         String race,
         String element,
         String size,
@@ -19,7 +18,6 @@ public record BestiaryStatPreviewDto(
 
     public BestiaryStatPreviewDto {
         rank = rank == null ? "" : rank;
-        tier = tier == null ? "" : tier;
         race = race == null ? "" : race;
         element = element == null ? "" : element;
         size = size == null ? "" : size;
@@ -29,7 +27,6 @@ public record BestiaryStatPreviewDto(
         buf.writeBoolean(dto.hasAuthoredStats);
         buf.writeVarInt(dto.level);
         buf.writeUtf(dto.rank);
-        buf.writeUtf(dto.tier);
         buf.writeUtf(dto.race);
         buf.writeUtf(dto.element);
         buf.writeUtf(dto.size);
@@ -45,7 +42,6 @@ public record BestiaryStatPreviewDto(
         return new BestiaryStatPreviewDto(
                 buf.readBoolean(),
                 buf.readVarInt(),
-                buf.readUtf(),
                 buf.readUtf(),
                 buf.readUtf(),
                 buf.readUtf(),

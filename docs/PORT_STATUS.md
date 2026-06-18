@@ -1,17 +1,18 @@
 # RagnarMMO Port Status
 
-Estado actual del port desde `original-source` hacia los 9 modulos.
+Estado actual del port desde `original-source` hacia los 8 modulos.
 
 ## Resumen
 
 - Build modular: `./gradlew.bat modularBuild --quiet` pasa.
-- Java original: 735 archivos en `original-source`.
-- Java modular: 223 archivos en los modulos nuevos.
-- Recursos originales: 688 archivos.
-- Recursos modulares: 683 archivos portados o staged.
-- Recursos no copiados tal cual: `META-INF/mods.toml`, `pack.mcmeta`, `pack.png`, `logo.png`, `ragnarmmo.mixins.json`.
+- Java original restante: 503 archivos en `original-source`.
+- Java modular: 360 archivos en los modulos nuevos.
+- Recursos originales restantes: 332 archivos en `original-source`.
+- Recursos modulares: 314 archivos portados o staged.
+- Duplicados exactos ya eliminados de `original-source`: 232 Java y 356 recursos.
+- Recursos restantes no duplicados exactos: assets visuales/sonoros/effects, metadata legacy, mixins y datos que aun requieren port o descarte explicito.
 
-Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es portar logica Java funcional.
+Los recursos gameplay de los modulos activos estan ubicados en sus dueños. `ragnarmmo-mobs` queda intencionalmente sin contenido staged hasta crear mobs/dungeons reales. La deuda grande pendiente es portar logica Java funcional.
 
 ## Portado
 
@@ -26,13 +27,22 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 - Sync server-side.
 - Derived stats base y pipeline extensible por contributors.
 - API minima de economia: account/service/transaction result.
-- Arquitectura definida para perfiles RO universales de mobs en core: deteccion, nivel, raza, elemento, tamano, boss/rank, stats derivados y API consumible por combat/client/social/mobs.
+- Arquitectura definida para perfiles RO universales de mobs en core: deteccion, nivel, raza, elemento, nivel elemental, tamano, boss/rank, stats derivados y API consumible por combat/social/mobs.
+- API declarativa de mobs portada a `core`: `MobRank`, scaling mode, definitions/templates, bloques de stats, AI/movement/loot/metamorphosis/spawn, resolver de definiciones, registry, loader datapack y read-view extensible.
+- `MobRank` queda como unica categoria funcional de mobs: `NORMAL`, `ELITE` y `BOSS`; `MobTier`, `MINI_BOSS` y `WEAK` quedan fuera del contrato modular.
+- Runtime universal de perfiles de mobs portado a `core`: capability persistente, `MobProfile`, factory de stats/EXP, bootstrap en `EntityJoinLevelEvent`, clasificacion de entidades elegibles, aplicacion de HP/attack/armor/move speed y read-view para consumidores.
+- Penalizacion por muerte de jugador restaurada en `core` para Base EXP y Job EXP.
+- Level-up base/job ahora recalcula derivados inmediatamente para que HP/SP y stats resueltos no queden atrasados tras ganar nivel.
+- Contrato de parser de mob definitions cubierto en tests de `core`.
 
 ### Combat
 
 - Contratos y formulas puras iniciales.
 - Element types, hit/reject reasons, profiles simples, defensa/damage/resistencias.
 - Runtime basico de ataque normal server-authoritative: request packet, target resolver, cadence/cooldown, hit/crit/damage resolution y result packet.
+- Integracion con perfil runtime de mobs: `combat` consume flee/def/level/aspd/crit/hit resueltos desde `core` cuando existen, con fallback vanilla.
+- Daño entrante mob -> jugador usa formula fisica pre-renewal: HIT vs FLEE/perfect dodge, roll de ATK min/max del `MobProfile`, crit opcional, reduccion por hard DEF, resta de soft DEF y minimo 1.
+- Daño saliente jugador -> mob ya aplica propiedades RO pre-renewal: penalizacion de arma por size, tabla elemental con nivel defensivo 1-4 y modifiers por raza/elemento/tamano desde NBT de equipo/cartas.
 - Hook inicial de `AttackEntityEvent` para cancelar vanilla cuando el ataque RO se procesa correctamente.
 - Ataque basico ignora la invulnerabilidad vanilla entre golpes y usa cadencia propia por ASPD.
 - Request de ataque preparado para main hand/off-hand; off-hand valida arma secundaria y aplica penalidad de cadencia.
@@ -46,6 +56,7 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 - Weapon stat helpers.
 - Contribucion server-side de equipo/refine/cards a derived stats.
 - Item fisico generico de card con ID legacy.
+- Al slotear una card, sus modifiers se copian al equipo en `RoCompoundedCardModifiers` para que `combat` pueda consumir bonuses/resistencias sin depender del modulo `items`.
 - Utility items legacy: `blue_gemstone`, `oridecon`, `elunium`.
 - Recipes de `elunium` y `oridecon`.
 - Loot modifier de cards con aliases `ragnarmmo:skill_loot` y `ragnarmmo:ragnar_loot`.
@@ -64,8 +75,9 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 
 ### Mobs
 
-- Entidades placeholder con IDs legacy para mobs base.
-- Mob definitions, templates, entity tags, worldgen tags y biome modifiers staged.
+- Modulo base minimo activo con `modId` `ragnarmmo_mobs`.
+- No registra entidades, spawns, mob definitions, templates ni biome modifiers por ahora.
+- Queda reservado para cuando se creen mobs, dungeons, bosses, IA, drops y world state reales.
 
 ### Life Skills
 
@@ -79,6 +91,7 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 ### Social
 
 - Party runtime portado: SavedData persistente, service, invites, settings, member sync, client cache y comandos `/party`.
+- EXP por kill restaurada sin antifarm: al morir un mob elegible, `social` toma el perfil runtime, aplica penalizacion por diferencia de nivel, distribuye Base/Job EXP via party share y sincroniza stats/HUD.
 - Party loot inicial portado: modos `free`, `priority`, `roundrobin`, `off`, prioridad temporal y validacion server-side de pickup para drops de mobs.
 - Achievements runtime portado: capability, registry JSON, triggers, claim/title packets y sync de definiciones/progreso.
 - Bestiary runtime base portado: API DTOs, loader, registry, index/details packets, metadata JSON y loot natural.
@@ -97,7 +110,7 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
   - Upgrade server-authoritative: valida skill existente, job permitido, prerequisitos, max level y consume `SkillPoints` de core.
   - Runtime basico de ejecucion de skills activas con targeting vanilla y cooldown/delay.
   - Cooldown y cast delay se resuelven por nivel desde `level_data` cuando el JSON lo define.
-  - Cambio de clase server-side para la fase actual: `/job current` y `/job change <class>`.
+  - Cambio de clase server-side para la fase actual mediante `JobChangeService` y UI/packets.
   - `PacketChangeJob` legacy queda cubierto por `JobChangeService`: Novice solo puede cambiar a primera clase, exige Novice Job Lv cap, `basic_skill` Lv 9 y cero puntos de skill sin gastar.
   - Novice cubierto funcionalmente como clase/base inicial propia.
   - Primeras clases cubiertas funcionalmente: Swordman, Archer, Acolyte, Thief, Merchant y Mage.
@@ -105,7 +118,7 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
   - Pasivas `NOVICE`/`FIRST` cubiertas mediante `JobPassiveStatsContributor`: masteries, recovery, dodge, owl/vulture eye, divine/demon, merchant economy passives y survival.
   - Los handlers activos consumen SP desde `core`, aplican delay/cooldown desde JSON y usan targeting/dano vanilla mientras las integraciones opcionales de combat se completan.
   - Merchant shop/economy actives (`buying_store`, `vending`) quedan como placeholder funcional con mensaje hasta completar wallet/shop UI en `economy`.
-  - Comandos de smoke test: `/job current`, `/job change <class>`, `/jobskills list`, `/jobskills use <skill>`, `/jobskills hotbar <slot> <skill>`.
+  - Los comandos de smoke test `/job` y `/jobskills` fueron removidos; el flujo de jugador queda en UI/hotbar.
 
 ### Client
 
@@ -125,9 +138,9 @@ Los recursos gameplay ya estan casi todos ubicados. La deuda grande pendiente es
 - Jobs: dejar segundas clases y superiores para una fase posterior/rediseño.
 - Jobs: mejorar fidelidad de primera clase con integraciones opcionales de `combat`, `items` y `economy` donde aplique, sin convertirlas en dependencias obligatorias.
 - Jobs/client: Apply/Reset con cambios pendientes en UI, cast bar visual, cooldowns visibles en hotbar y pulido visual del change class.
-- Implementar `core` universal mob profile/scaling: clasificacion hostil/neutral/pasivo/boss, configs por entidad/tag/bioma/dimension/estructura, aplicacion de atributos runtime y sync minimo para target HUD.
-- Completar combat runtime avanzado: tuning de auto-attack client-side, cast, skill packets, status, aggro, kill credit y contratos para skills/mobs.
-- Port funcional completo de mobs: IA, profiles, stats, drops, boss/world state.
+- Completar reglas avanzadas de `core` para mob profile/scaling: configs por entidad/tag/bioma/dimension/estructura, sync minimo para target HUD y deteccion fina de dungeon/estructura.
+- Completar combat runtime avanzado: tuning de auto-attack client-side, cast, skill packets, status, aggro avanzado y contratos para skills/mobs.
+- Port funcional completo de mobs de contenido: IA propia, drops, boss/world state y spawns reales cuando existan mobs/dungeons/bosses propios.
 - Comercio y extensiones economicas avanzadas sobre la wallet base.
 - Life Skills: migrar/aislar efectos de las antiguas `skills/job/life` si siguen siendo necesarios como acciones activables.
 - Social: enriquecer bestiary con integraciones opcionales de mobs/items/economy para stats, cards y recompensas dinamicas.

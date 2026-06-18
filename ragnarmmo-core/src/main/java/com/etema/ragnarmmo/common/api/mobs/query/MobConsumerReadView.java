@@ -1,0 +1,45 @@
+package com.etema.ragnarmmo.common.api.mobs.query;
+
+import com.etema.ragnarmmo.common.api.mobs.MobRank;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+
+/**
+ * Shared normalized read view for mob consumers.
+ *
+ * <p>This is a read-only integration model only. It is not a runtime authority and does not fold
+ * world-state policy into rank.</p>
+ */
+public record MobConsumerReadView(
+        ResourceLocation entityTypeId,
+        MobConsumerDataOrigin dataOrigin,
+        int level,
+        MobRank rank,
+        String race,
+        String element,
+        int elementLevel,
+        String size,
+        boolean bossLike,
+        boolean hasNewRuntimeProfile,
+        @Nullable MobConsumerInspectionStatsView inspectionStats) {
+
+    public MobConsumerReadView {
+        entityTypeId = Objects.requireNonNull(entityTypeId, "entityTypeId");
+        dataOrigin = Objects.requireNonNull(dataOrigin, "dataOrigin");
+        rank = Objects.requireNonNull(rank, "rank");
+        race = requireNonBlank(race, "race");
+        element = requireNonBlank(element, "element");
+        elementLevel = Math.max(1, Math.min(4, elementLevel));
+        size = requireNonBlank(size, "size");
+    }
+
+    private static String requireNonBlank(String value, String fieldName) {
+        Objects.requireNonNull(value, fieldName);
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+        return value;
+    }
+}

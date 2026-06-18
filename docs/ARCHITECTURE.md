@@ -1,6 +1,6 @@
 # RagnarMMO Architecture
 
-Este workspace convierte RagnarMMO en una familia de 9 mods Forge. `original-source` es solo referencia de lectura para terminar el port: no es un modulo, no se distribuye y no debe ser dependencia.
+Este workspace convierte RagnarMMO en una familia de 8 mods Forge. `original-source` es solo referencia de lectura para terminar el port: no es un modulo, no se distribuye y no debe ser dependencia.
 
 ## Regla central
 
@@ -8,8 +8,8 @@ Este workspace convierte RagnarMMO en una familia de 9 mods Forge. `original-sou
 - Los demas mods se adhieren a `core`.
 - Cada modulo debe funcionar con Minecraft vanilla/base mas `core`.
 - Las integraciones entre mods RagnarMMO son opcionales salvo que se documente lo contrario.
-- `ragnarmmo-client` solo muestra datos, caches visuales e input; no decide stats, damage, drops, wallet ni progresion.
-- Todo gameplay debe poder validarse en servidor dedicado sin el modulo client.
+- El codigo client-side de cada modulo solo muestra datos, caches visuales e input; no decide stats, damage, drops, wallet ni progresion.
+- Todo gameplay debe poder validarse en servidor dedicado sin depender de una carpeta o modulo client separado.
 
 ## Modulos
 
@@ -23,14 +23,13 @@ Este workspace convierte RagnarMMO en una familia de 9 mods Forge. `original-sou
 | `ragnarmmo-lifeskills` | Mining, woodcutting, excavation, farming, fishing, exploration y progresion propia. | `core` |
 | `ragnarmmo-mobs` | Mobs RO, definitions, spawns, boss/world state, mob profiles y drops. | `core` |
 | `ragnarmmo-social` | Party, achievements, titles, bestiary y progreso visible. | `core` |
-| `ragnarmmo-client` | HUD, screens, keybinds, renderers, tooltips, effects, client caches y Jade opcional. | `core` |
 
 ## Integraciones opcionales
 
 - `jobs` usa `combat` si esta presente para damage/cast/status, y `items` si esta presente para requisitos de arma/equipo. Sin ellos debe usar fallback vanilla.
 - `mobs` usa `combat` para aggro/damage/status, `items` para drops fisicos y `economy` para recompensas wallet. Sin ellos debe spawnear y comportarse con base vanilla.
 - `social` muestra datos de `items`, `mobs`, `jobs` o `economy` solo si existen. Party/titles/achievements deben funcionar con solo `core`.
-- `client` activa pantallas/renderers por modulo presente. Con solo `core` debe poder mostrar HUD/datos base.
+- Las pantallas, renderers, tooltips, keybinds y caches client-side viven en el modulo que expone esa funcionalidad, activadas por presencia de modulo.
 - GeckoLib y Jade son compat/render opcionales, no requisitos del ecosistema base.
 
 ## Frontera Core/Combat
@@ -48,18 +47,41 @@ Responsabilidades de `core`:
 
 - Detectar cualquier `LivingEntity` no jugador y clasificarla como hostil, neutral, pasiva o boss.
 - Excluir por defecto animales de granja y mobs puramente pasivos que no atacan al jugador.
-- Resolver un `MobRoProfile` server-side con nivel, raza, elemento, tamano, rank/boss, stats primarios, stats derivados, recompensas base y flags de comportamiento.
+- Resolver un `MobProfile` server-side con nivel, raza, elemento, nivel elemental, tamano, rank/boss, stats primarios, stats derivados, recompensas base y flags de comportamiento.
 - Aplicar atributos runtime derivados: HP, attack, defense, magic defense, hit, flee, crit, ASPD/move speed y otros atributos compartidos cuando existan.
 - Leer configs/datapacks universales para reglas por entidad, tag, biome, dimension, estructura/dungeon y boss.
-- Exponer API publica para que `combat`, `social`, `client`, `mobs` u otros modulos consulten el perfil sin depender entre si.
+- Exponer API publica para que `combat`, `social`, `mobs` u otros modulos consulten el perfil sin depender entre si.
 
 Responsabilidades de `combat`:
 
 - Consumir el perfil RO resuelto por `core` durante hit/flee, damage, reduccion, crit, ASPD, status y aggro.
-- No decidir el nivel del mob ni su raza/elemento/tamano; solo aplicar esas propiedades a formulas de combate.
+- Resolver el daño fisico mob -> jugador con formula pre-renewal: el mob usa su ATK min/max y HIT; el jugador defiende con FLEE/perfect dodge, hard DEF porcentual, soft DEF plana y reducciones adicionales.
+- Aplicar propiedades RO al daño: elemento atacante vs elemento defensor nivel 1-4, penalizacion de arma por tamano del objetivo y bonuses por raza/elemento/tamano cuando existan en NBT de equipo/cartas.
+- No decidir el nivel del mob ni su raza/elemento/nivel elemental/tamano; solo aplicar esas propiedades a formulas de combate.
 - Usar fallback vanilla cuando `core` no entregue perfil para un objetivo.
 
-Responsabilidades de `client` y `social`:
+Contrato de raza, elemento y tamano en perfiles de mobs:
+
+- Las definiciones datapack usan campos separados: `race`, `element`, `element_level` y `size`.
+- `element_level` representa el nivel defensivo RO del objetivo y acepta 1-4. Si falta, se usa 1.
+- Elementos aceptados por combate: `neutral`, `water`, `earth`, `fire`, `wind`, `poison`, `holy`, `dark`/`shadow`, `ghost`, `undead`.
+- Razas recomendadas RO: `formless`, `undead`, `brute`, `plant`, `insect`, `fish`, `demon`, `demihuman`, `angel`, `dragon`. Por ahora se guardan como string normalizado para permitir compat con mods externos.
+- Tamanos aceptados: `small`, `medium`, `large`.
+- Fallback procedural actual para mobs sin definicion: `race=brute`, `element=neutral`, `element_level=1`, `size=medium`.
+- La tabla elemental base de `combat` es pre-renewal: el ataque no tiene nivel elemental; solo el defensor tiene nivel 1-4. La tabla puede devolver multiplicadores negativos, igual que RO.
+
+Contrato inicial de modifiers consumidos por `combat`:
+
+- `ragnarmmo:damage_all`
+- `ragnarmmo:damage_race_<race>`; ejemplo `ragnarmmo:damage_race_undead`
+- `ragnarmmo:damage_element_<element>`; ejemplo `ragnarmmo:damage_element_fire`
+- `ragnarmmo:damage_size_<small|medium|large>`
+- `ragnarmmo:resist_element_<element>`; ejemplo `ragnarmmo:resist_element_fire`
+- `ragnarmmo:resist_all_elements`
+
+Estos valores son porcentajes expresados como decimal (`0.20` = 20%). Pueden vivir como claves directas del item o dentro de `card_modifiers`/`RoCompoundedCardModifiers`.
+
+Responsabilidades client-side y de `social`:
 
 - Mostrar el perfil resuelto, por ejemplo mini HUD/target frame con nombre, nivel, HP y clasificacion.
 - No calcular nivel, stats ni recompensas.
@@ -82,7 +104,13 @@ Resolucion recomendada por prioridad:
 
 Las estructuras/dungeons deben poder definir nivel minimo, maximo o fijo de manera separada del mundo abierto. Para el primer port basta una API/config preparada; la deteccion fina por estructura puede entrar despues con adapters por estructura, spawn reason o marcadores de integracion.
 
-La configuracion avanzada por mob queda planificada como sistema datapack/config server-side: cada entidad o tag podra definir HP, ATK, MATK, DEF, MDEF, HIT, FLEE, ASPD, raza, elemento, tamano, nivel fijo/rango y multiplicadores. Esta capa no es prioritaria para el smoke inicial, pero la arquitectura debe dejarle espacio.
+La configuracion avanzada por mob queda planificada como sistema datapack/config server-side: cada entidad o tag podra definir HP, ATK, MATK, DEF, MDEF, HIT, FLEE, ASPD, raza, elemento, nivel elemental, tamano, nivel fijo/rango y multiplicadores. Esta capa no es prioritaria para el smoke inicial, pero la arquitectura debe dejarle espacio.
+
+Separacion recomendada entre config y datapacks:
+
+- Datapack: definiciones exactas por `entity_type`, plantillas reutilizables, overrides de mobs de mods, loot tables, skill trees, recipes, tags y contenido que debe viajar con un pack o mundo.
+- Config server-side: tasas globales, multiplicadores por rank, defaults procedurales, toggles de formulas, tabla elemental opcional/custom, rangos por dimension/bioma/tag y presets simples pensados para administradores.
+- Regla practica: si el dato apunta a un recurso de Minecraft (`minecraft:zombie`, tag, loot table, recipe, skill tree), va mejor en datapack; si es una perilla de balance global o un preset que el admin cambia a mano, va mejor en `config`.
 
 ## Skills UI Modular
 
@@ -102,7 +130,7 @@ Fuentes de datos:
 
 - `ragnarmmo-jobs` registra job skill definitions, skill trees, skill levels, puntos y packets de aplicar/resetear.
 - `ragnarmmo-lifeskills` registra life skills en una pestana separada o una seccion lateral; no se mezclan con Job Skills.
-- `ragnarmmo-client` renderiza iconos, grillas, tooltips, estado visual y caches. No decide requisitos, puntos ni aprendizaje.
+- El codigo client-side del modulo dueño de cada UI renderiza iconos, grillas, tooltips, estado visual y caches. No decide requisitos, puntos ni aprendizaje.
 - `ragnarmmo-core` define contratos/API comunes para que otros mods puedan aportar skills visibles sin depender de internals de `jobs`.
 
 Iconos y sprites:
@@ -131,7 +159,6 @@ Las carpetas Gradle usan guion y los `modId` usan guion bajo:
 | `ragnarmmo-lifeskills` | `ragnarmmo_lifeskills` |
 | `ragnarmmo-mobs` | `ragnarmmo_mobs` |
 | `ragnarmmo-social` | `ragnarmmo_social` |
-| `ragnarmmo-client` | `ragnarmmo_client` |
 
 Algunos registros conservan namespace legacy `ragnarmmo` para compatibilidad de datos viejos. No eliminar esos aliases sin revisar `LEGACY_COMPATIBILITY.md`.
 

@@ -11,6 +11,7 @@ import net.minecraft.nbt.Tag;
 public final class RoItemNbtHelper {
 
     public static final String TAG_SLOTTED_CARDS = "RoSlottedCards";
+    public static final String TAG_COMPOUNDED_CARD_MODIFIERS = "RoCompoundedCardModifiers";
     public static final String TAG_REFINE_LEVEL = "RoRefineLevel";
     public static final int MAX_REFINE_LEVEL = 10;
 
@@ -57,6 +58,17 @@ public final class RoItemNbtHelper {
         }
 
         cardList.add(StringTag.valueOf(cardId));
+    }
+
+    public static void addCompoundedCardModifiers(ItemStack stack, CompoundTag modifiers) {
+        if (stack.isEmpty() || modifiers == null || modifiers.isEmpty()) {
+            return;
+        }
+        CompoundTag target = stack.getOrCreateTag().getCompound(TAG_COMPOUNDED_CARD_MODIFIERS);
+        for (String key : modifiers.getAllKeys()) {
+            target.putDouble(key, target.getDouble(key) + modifiers.getDouble(key));
+        }
+        stack.getOrCreateTag().put(TAG_COMPOUNDED_CARD_MODIFIERS, target);
     }
 
     public static int getRefineLevel(ItemStack stack) {

@@ -43,5 +43,10 @@
   "category.ragnarmmo.adventure": "Adventure",
   "category.ragnarmmo.quest": "Quest",
   "category.ragnarmmo.memorial_dungeon": "Memorial Dungeon",
-  "category.ragnarmmo.great": "Great"
+  "category.ragnarmmo.great": "Great",
+  "message.ragnarmmo.exp_gain_dual": "Base EXP +%s | Job EXP +%s for defeating %s",
+  "message.ragnarmmo.exp_loss_death_dual": "You lost %s Base EXP and %s Job EXP due to death.",
+  "message.ragnarmmo.level_up": "Level Up! (+%s levels)",
+  "message.ragnarmmo.job_level_up": "Job Level +%s",
+  "party.xp.shared": "Shared EXP +%s from %s"
 }

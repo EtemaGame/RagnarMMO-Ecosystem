@@ -26,5 +26,10 @@
   "stat.ragnarmmo.vit": "Vitalidad",
   "stat.ragnarmmo.int": "Inteligencia",
   "stat.ragnarmmo.dex": "Destreza",
-  "stat.ragnarmmo.luk": "Suerte"
+  "stat.ragnarmmo.luk": "Suerte",
+  "message.ragnarmmo.exp_gain_dual": "EXP Base +%s | EXP Job +%s por derrotar a %s",
+  "message.ragnarmmo.exp_loss_death_dual": "Perdiste %s de EXP Base y %s de EXP Job por morir.",
+  "message.ragnarmmo.level_up": "Subida de nivel (+%s niveles)",
+  "message.ragnarmmo.job_level_up": "Nivel de Job +%s",
+  "party.xp.shared": "EXP compartida +%s de %s"
 }

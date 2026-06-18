@@ -27,6 +27,13 @@ public final class DefenseFormulaService {
         return Math.max(1.0, afterHard - softDef);
     }
 
+    public static double applyPreRenewalMobPhysicalDefense(double rawDamage, double hardDef, double softDef,
+            double bonusReduction) {
+        double reduction = FormulaUtil.clamp(0.0D, DR_PHYS_MAX, physicalDamageReduction(hardDef) + Math.max(0.0D, bonusReduction));
+        double afterHard = Math.max(0.0D, rawDamage) * (1.0D - reduction);
+        return Math.max(1.0D, afterHard - Math.max(0.0D, softDef));
+    }
+
     public static double softMdef(int intel, int vit) {
         return Math.max(0.0, intel + Math.floor(vit / 2.0));
     }

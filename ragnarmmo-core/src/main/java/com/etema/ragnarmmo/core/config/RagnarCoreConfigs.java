@@ -39,10 +39,6 @@ public final class RagnarCoreConfigs {
         public final ForgeConfigSpec.IntValue pointsPerLevel;
         public final ForgeConfigSpec.DoubleValue skillToJobExpMultiplier;
         public final ForgeConfigSpec.DoubleValue skillToBaseExpMultiplier;
-        public final ForgeConfigSpec.IntValue antiFarmTimeThreshold;
-        public final ForgeConfigSpec.IntValue antiFarmRadiusChunks;
-        public final ForgeConfigSpec.DoubleValue antiFarmMaxPenalty;
-        public final ForgeConfigSpec.BooleanValue antiFarmSpawnReduction;
 
         Progression(ForgeConfigSpec.Builder builder) {
             builder.comment("RagnarMMO core progression settings").push("progression");
@@ -56,13 +52,6 @@ public final class RagnarCoreConfigs {
             skillToJobExpMultiplier = builder.defineInRange("skill_to_job_exp_multiplier", 0.5, 0.0, 10.0);
             baseStatPoints = builder.defineInRange("base_stat_points", 48, 0, 500);
             pointsPerLevel = builder.defineInRange("points_per_level", 3, 0, 50);
-
-            builder.push("anti_farm");
-            antiFarmTimeThreshold = builder.defineInRange("time_threshold_minutes", 15, 1, 1440);
-            antiFarmRadiusChunks = builder.defineInRange("radius_chunks", 2, 1, 10);
-            antiFarmMaxPenalty = builder.defineInRange("max_penalty_limit", 0.1, 0.0, 1.0);
-            antiFarmSpawnReduction = builder.define("spawn_reduction_enabled", true);
-            builder.pop();
             builder.pop();
         }
     }

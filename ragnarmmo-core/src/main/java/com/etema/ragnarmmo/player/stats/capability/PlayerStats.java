@@ -372,6 +372,7 @@ public class PlayerStats implements IPlayerStats {
         ProgressionResult result = progressionService().addBaseExp(toProgression(), add);
         applyProgression(result.progression());
         markDirty(RoPlayerSyncDomain.PROGRESSION);
+        StatResolutionService.resolve(owner, this);
         return result.baseLevelsGained();
     }
 
@@ -380,6 +381,7 @@ public class PlayerStats implements IPlayerStats {
         ProgressionResult result = progressionService().addJobExp(toProgression(), add);
         applyProgression(result.progression());
         markDirty(RoPlayerSyncDomain.PROGRESSION);
+        StatResolutionService.resolve(owner, this);
         return result.jobLevelsGained();
     }
 

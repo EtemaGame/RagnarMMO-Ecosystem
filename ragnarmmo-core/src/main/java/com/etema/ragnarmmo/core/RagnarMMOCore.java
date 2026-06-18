@@ -11,10 +11,13 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import com.etema.ragnarmmo.core.api.stats.DerivedStatsService;
 import com.etema.ragnarmmo.player.stats.compute.CoreDerivedStatsCalculator;
+import org.slf4j.Logger;
+import com.mojang.logging.LogUtils;
 
 @Mod(RagnarMMOCore.MOD_ID)
 public final class RagnarMMOCore {
     public static final String MOD_ID = "ragnarmmo_core";
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public RagnarMMOCore() {
         var modBus = FMLJavaModLoadingContext.get().getModEventBus();

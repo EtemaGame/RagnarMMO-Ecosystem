@@ -14,13 +14,19 @@ import com.etema.ragnarmmo.combat.api.RagnarAttackRequest;
 import com.etema.ragnarmmo.combat.api.ResolvedTargetCandidate;
 import com.etema.ragnarmmo.combat.contract.CombatContract;
 import com.etema.ragnarmmo.combat.credit.RoKillCreditService;
+import com.etema.ragnarmmo.combat.element.CombatPropertyResolver;
+import com.etema.ragnarmmo.combat.element.ElementProperty;
+import com.etema.ragnarmmo.combat.element.ElementType;
+import com.etema.ragnarmmo.combat.formula.CombatPropertyModifierService;
 import com.etema.ragnarmmo.combat.formula.AccuracyFormulaService;
 import com.etema.ragnarmmo.combat.formula.DamageFormulaService;
 import com.etema.ragnarmmo.combat.formula.DefenseFormulaService;
 import com.etema.ragnarmmo.combat.hand.AttackHandResolver;
+import com.etema.ragnarmmo.combat.resolver.MobCombatProfileResolver;
 import com.etema.ragnarmmo.combat.state.CombatActorState;
 import com.etema.ragnarmmo.combat.targeting.ServerTargetResolver;
 import com.etema.ragnarmmo.combat.timing.AttackCadenceCalculator;
+import com.etema.ragnarmmo.player.stats.compute.CombatMath;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -132,14 +138,24 @@ public final class RagnarCombatEngine {
 
         double critChance = AccuracyFormulaService.criticalChance(luk, 0.0D);
         boolean critical = attacker.getRandom().nextDouble() <= critChance;
+        double statusAtk = DamageFormulaService.statusAtk(str, dex, luk, ranged);
+        double sizePenalty = CombatMath.getWeaponSizePenalty(weapon, CombatPropertyResolver.getEntitySize(target));
+        double sizedWeaponAtk = DamageFormulaService.weaponAtk(weaponAttack(attacker, weapon)) * sizePenalty;
         double rawDamage = DamageFormulaService.damageVariance(
-                DamageFormulaService.totalAtk(str, dex, luk, weaponAttack(attacker, weapon), 0.0D, ranged),
+                statusAtk + sizedWeaponAtk,
                 dex,
                 luk,
                 new java.util.Random(attacker.getRandom().nextLong()));
         if (critical) {
             rawDamage *= DamageFormulaService.critDamageMultiplier();
         }
+        ElementType attackElement = CombatPropertyResolver.getAttackElement(weapon);
+        ElementProperty targetElement = CombatPropertyResolver.getDefensiveElementProperty(target);
+        rawDamage *= DamageFormulaService.elementMultiplier(attackElement, targetElement.type(), targetElement.level());
+        rawDamage *= CombatPropertyModifierService.outgoingDamageMultiplier(attacker,
+                CombatPropertyResolver.getRace(target),
+                targetElement.type(),
+                CombatPropertyResolver.getEntitySize(target));
 
         double finalDamage = DefenseFormulaService.applyPhysicalDefense(rawDamage, targetSoftDefense(target),
                 DefenseFormulaService.physicalDamageReduction(targetHardDefense(target)));
@@ -207,6 +223,10 @@ public final class RagnarCombatEngine {
         if (target instanceof ServerPlayer player) {
             return Math.max(0.0D, StatAttributes.getTotal(player, StatKeys.AGI) + player.experienceLevel);
         }
+        var mobFlee = MobCombatProfileResolver.tryGetResolvedMobFlee(target);
+        if (mobFlee.isPresent()) {
+            return mobFlee.getAsInt();
+        }
         var movement = target.getAttribute(Attributes.MOVEMENT_SPEED);
         double speed = movement != null ? movement.getValue() : 0.2D;
         return Math.max(0.0D, speed * 100.0D);
@@ -216,10 +236,18 @@ public final class RagnarCombatEngine {
         if (target instanceof ServerPlayer player) {
             return DefenseFormulaService.softDef((int) Math.round(StatAttributes.getTotal(player, StatKeys.VIT)));
         }
+        var mobSoftDef = MobCombatProfileResolver.tryGetResolvedMobSoftDefense(target);
+        if (mobSoftDef.isPresent()) {
+            return mobSoftDef.getAsInt();
+        }
         return Math.max(0.0D, target.getArmorValue() * 0.5D);
     }
 
     private static double targetHardDefense(LivingEntity target) {
+        var mobHardDef = MobCombatProfileResolver.tryGetResolvedMobHardDefense(target);
+        if (mobHardDef.isPresent()) {
+            return mobHardDef.getAsInt();
+        }
         return Math.max(0.0D, target.getArmorValue());
     }
 }
