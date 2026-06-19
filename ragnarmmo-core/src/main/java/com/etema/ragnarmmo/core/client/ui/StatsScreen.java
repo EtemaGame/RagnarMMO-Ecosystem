@@ -1,6 +1,7 @@
 package com.etema.ragnarmmo.core.client.ui;
 
 import com.etema.ragnarmmo.core.client.DerivedStatsClientCache;
+import com.etema.ragnarmmo.core.client.HudOverlayScreenRegistry;
 import com.etema.ragnarmmo.common.api.RagnarCoreAPI;
 import com.etema.ragnarmmo.common.api.compute.DerivedStats;
 import com.etema.ragnarmmo.common.api.stats.IPlayerStats;
@@ -37,6 +38,7 @@ public class StatsScreen extends Screen {
     private static final int BTN_SIZE_SMALL = 14;
 
     private static final Rect BTN_CLOSE = new Rect(PANEL_WIDTH - 28, 6, 18, 18);
+    private static final Rect BTN_HUD = new Rect(PANEL_WIDTH - 148, PANEL_HEIGHT - FOOTER_HEIGHT + 10, 56, 18);
     private static final Rect BTN_RESET_STATS = new Rect(PANEL_WIDTH - 90, PANEL_HEIGHT - FOOTER_HEIGHT + 10, 80, 18);
 
     private final Map<StatKeys, Rect> plusRect = new EnumMap<>(StatKeys.class);
@@ -260,6 +262,14 @@ public class StatsScreen extends Screen {
                 jobName, stats.getJobLevel(), stats.getJobExp(), progression.jobExpToNext(stats.getJobLevel()));
         graphics.drawString(minecraft.font, jobText, 16, footerY, 0xFF99CCFF, false);
 
+        boolean hoverHud = BTN_HUD.contains(mx, my);
+        drawButton(graphics, BTN_HUD, Component.translatable("screen.ragnarmmo.overlay.button.open"),
+                hoverHud, true);
+        if (hoverHud) {
+            deferredTooltip = List.of(Component.translatable("screen.ragnarmmo.overlay.instructions.move")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+
         boolean hoverReset = BTN_RESET_STATS.contains(mx, my);
         drawButton(graphics, BTN_RESET_STATS, Component.translatable("screen.ragnarmmo.button.reset_stats"), hoverReset, false);
         if (hoverReset) {
@@ -306,6 +316,12 @@ public class StatsScreen extends Screen {
 
         if (BTN_CLOSE.contains(mx, my)) {
             minecraft.setScreen(null);
+            playClickSound(1.0F);
+            return true;
+        }
+
+        if (BTN_HUD.contains(mx, my)) {
+            HudOverlayScreenRegistry.open(minecraft);
             playClickSound(1.0F);
             return true;
         }

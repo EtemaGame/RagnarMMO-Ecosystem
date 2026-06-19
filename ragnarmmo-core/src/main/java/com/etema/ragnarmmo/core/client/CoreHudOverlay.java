@@ -1,9 +1,13 @@
 package com.etema.ragnarmmo.core.client;
 
 import com.etema.ragnarmmo.common.api.RagnarCoreAPI;
-import com.etema.ragnarmmo.common.api.stats.IPlayerStats;
 import com.etema.ragnarmmo.common.api.jobs.JobType;
+import com.etema.ragnarmmo.common.api.stats.IPlayerStats;
+import com.etema.ragnarmmo.core.client.hud.HudConfigSerializer;
+import com.etema.ragnarmmo.core.client.hud.HudLayoutManager;
+import com.etema.ragnarmmo.core.client.hud.HudWidgetState;
 import com.etema.ragnarmmo.core.client.ui.GuiConstants;
+import com.etema.ragnarmmo.core.config.RagnarClientConfigs;
 import com.etema.ragnarmmo.player.progression.PlayerProgressionService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -26,6 +30,7 @@ public final class CoreHudOverlay {
     private static final int LINE_SPACING = 2;
     private static final int LABEL_WIDTH = 20;
     private static final int VALUE_GAP = 4;
+    private static final int WIDTH = 210;
 
     private CoreHudOverlay() {
     }
@@ -41,23 +46,63 @@ public final class CoreHudOverlay {
         if (player == null || minecraft.options.hideGui || player.isSpectator()) {
             return;
         }
+        if (!RagnarClientConfigs.CLIENT.hud.enabled.get()) {
+            return;
+        }
 
-        RagnarCoreAPI.get(player).ifPresent(stats ->
-                renderStatus(graphics, minecraft.font, stats, player, screenWidth, screenHeight));
+        HudWidgetState state = HudConfigSerializer.read(RagnarClientConfigs.CLIENT.hud.status);
+        if (!state.enabled()) {
+            return;
+        }
+
+        RagnarCoreAPI.get(player).ifPresent(stats -> {
+            HudLayoutManager.HudBounds bounds = HudLayoutManager.bounds(
+                    state, WIDTH, getStatusHeight(minecraft.font), screenWidth, screenHeight);
+            HudLayoutManager.renderBackground(graphics, state, bounds);
+            HudLayoutManager.pushWidgetTransform(graphics, bounds);
+            renderStatusPanel(graphics, minecraft.font, stats, player, bounds.width());
+            HudLayoutManager.popWidgetTransform(graphics);
+        });
     }
 
-    private static void renderStatus(GuiGraphics graphics, Font font, IPlayerStats stats, Player player,
-                                     int screenWidth, int screenHeight) {
-        int width = 210;
-        int height = PANEL_PADDING * 2 + font.lineHeight + (BAR_HEIGHT + LINE_SPACING) * 3
-                + font.lineHeight + XP_BAR_HEIGHT + 2;
-        int x = (screenWidth - width) / 2;
-        int y = screenHeight - height - 39;
-        int contentX = x + PANEL_PADDING;
-        int contentW = width - PANEL_PADDING * 2;
-        int cy = y + PANEL_PADDING;
+    public static int getStatusWidth() {
+        return WIDTH;
+    }
 
-        drawPanel(graphics, x, y, width, height);
+    public static int getStatusHeight(Font font) {
+        return PANEL_PADDING * 2 + font.lineHeight + (BAR_HEIGHT + LINE_SPACING) * 3
+                + font.lineHeight + XP_BAR_HEIGHT + 2;
+    }
+
+    public static int renderPreview(GuiGraphics graphics, Font font, IPlayerStats stats, Player player, int width) {
+        return renderStatusPanel(graphics, font, stats, player, width);
+    }
+
+    public static int renderPlaceholder(GuiGraphics graphics, Font font, int width) {
+        int height = getStatusHeight(font);
+        drawPanel(graphics, 0, 0, width, height);
+        drawText(graphics, font, "Player", PANEL_PADDING, PANEL_PADDING, 0xFFFFFFFF);
+        drawText(graphics, font, "Lv.--  Job.--", width - PANEL_PADDING - font.width("Lv.--  Job.--"), PANEL_PADDING,
+                GuiConstants.COLOR_TEXT_DIM);
+        int y = PANEL_PADDING + font.lineHeight + LINE_SPACING;
+        drawBar(graphics, font, "HP", 0, 100, PANEL_PADDING, y, width - PANEL_PADDING * 2,
+                GuiConstants.COLOR_HP_BAR, GuiConstants.COLOR_HP_BAR_DARK);
+        y += BAR_HEIGHT + LINE_SPACING;
+        drawBar(graphics, font, "SP", 0, 100, PANEL_PADDING, y, width - PANEL_PADDING * 2,
+                GuiConstants.COLOR_SP_BAR, GuiConstants.COLOR_SP_BAR_DARK);
+        y += BAR_HEIGHT + LINE_SPACING;
+        drawBar(graphics, font, "FD", 20, 20, PANEL_PADDING, y, width - PANEL_PADDING * 2,
+                0xFFFFAA00, 0xFF906000);
+        return height;
+    }
+
+    private static int renderStatusPanel(GuiGraphics graphics, Font font, IPlayerStats stats, Player player, int width) {
+        int height = getStatusHeight(font);
+        drawPanel(graphics, 0, 0, width, height);
+        int contentX = PANEL_PADDING;
+        int contentW = width - PANEL_PADDING * 2;
+        int cy = PANEL_PADDING;
+
         drawNameRow(graphics, font, stats, player, contentX, cy, contentW);
         cy += font.lineHeight + LINE_SPACING;
 
@@ -77,6 +122,7 @@ public final class CoreHudOverlay {
         cy += BAR_HEIGHT + LINE_SPACING + 1;
 
         drawExpBars(graphics, font, stats, contentX, cy, contentW);
+        return height;
     }
 
     private static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height) {
@@ -85,15 +131,14 @@ public final class CoreHudOverlay {
         graphics.renderOutline(x + 1, y + 1, width - 2, height - 2, GuiConstants.COLOR_HUD_PANEL_BORDER_INNER);
     }
 
-    private static void drawNameRow(GuiGraphics graphics, Font font, IPlayerStats stats, Player player,
-                                    int x, int y, int width) {
+    private static void drawNameRow(GuiGraphics graphics, Font font, IPlayerStats stats, Player player, int x, int y, int width) {
         drawText(graphics, font, player.getName().getString(), x, y, 0xFFFFFFFF);
         String levels = "Lv." + stats.getLevel() + "  Job." + stats.getJobLevel();
         drawText(graphics, font, levels, x + width - font.width(levels), y, GuiConstants.COLOR_TEXT_DIM);
     }
 
     private static void drawBar(GuiGraphics graphics, Font font, String label, double value, double max,
-                                int x, int y, int width, int topColor, int bottomColor) {
+            int x, int y, int width, int topColor, int bottomColor) {
         String text = (int) value + "/" + (int) max;
         int valueWidth = font.width(text);
         int barX = x + LABEL_WIDTH;
@@ -123,7 +168,7 @@ public final class CoreHudOverlay {
     }
 
     private static void drawThinBar(GuiGraphics graphics, Font font, String label, int x, int y, int width,
-                                    float pct, int topColor, int bottomColor) {
+            float pct, int topColor, int bottomColor) {
         int labelWidth = font.width(label) + 3;
         int barX = x + labelWidth;
         int barY = y + font.lineHeight - XP_BAR_HEIGHT;

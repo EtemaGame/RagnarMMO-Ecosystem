@@ -1,6 +1,7 @@
 package com.etema.ragnarmmo.core;
 
 import com.etema.ragnarmmo.core.config.RagnarCoreConfigs;
+import com.etema.ragnarmmo.core.config.RagnarClientConfigs;
 import com.etema.ragnarmmo.common.api.attributes.RagnarAttributes;
 import com.etema.ragnarmmo.common.net.Network;
 import com.etema.ragnarmmo.core.client.ClientCoreSyncHandler;
@@ -25,6 +26,7 @@ public final class RagnarMMOCore {
         Network.registerCorePackets();
         DerivedStatsService.register(CoreDerivedStatsCalculator::compute);
         FMLJavaModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RagnarCoreConfigs.SERVER_SPEC);
+        FMLJavaModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, RagnarClientConfigs.CLIENT_SPEC);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.etema.ragnarmmo.core.client.CoreClientPacketHandler.register(ClientCoreSyncHandler.INSTANCE));
     }
 }

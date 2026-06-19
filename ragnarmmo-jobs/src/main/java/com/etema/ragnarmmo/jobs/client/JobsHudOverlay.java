@@ -1,12 +1,17 @@
 package com.etema.ragnarmmo.jobs.client;
 
 import com.etema.ragnarmmo.combat.client.ClientCombatState;
+import com.etema.ragnarmmo.core.client.hud.HudConfigSerializer;
+import com.etema.ragnarmmo.core.client.hud.HudLayoutManager;
+import com.etema.ragnarmmo.core.client.hud.HudWidgetState;
 import com.etema.ragnarmmo.core.client.ui.GuiConstants;
+import com.etema.ragnarmmo.core.config.RagnarClientConfigs;
 import com.etema.ragnarmmo.jobs.data.SkillDefinition;
 import com.etema.ragnarmmo.jobs.data.SkillDefinitionRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
@@ -36,6 +41,14 @@ public final class JobsHudOverlay {
         if (minecraft.player == null || minecraft.options.hideGui || minecraft.player.isSpectator()) {
             return;
         }
+        if (!RagnarClientConfigs.CLIENT.hud.enabled.get()) {
+            return;
+        }
+        HudWidgetState state = HudConfigSerializer.read(RagnarClientConfigs.CLIENT.hud.skillHotbar);
+        if (!state.enabled()) {
+            return;
+        }
+
         boolean hasAny = false;
         for (int i = 0; i < SLOTS; i++) {
             if (JobSkillsClientCache.getHotbarSlot(i) != null) {
@@ -48,18 +61,23 @@ public final class JobsHudOverlay {
         }
 
         int width = SLOTS * SLOT + (SLOTS - 1) * GAP;
-        int x = (screenWidth - width) / 2;
-        int y = screenHeight - 93;
         Font font = minecraft.font;
+        HudLayoutManager.HudBounds bounds = HudLayoutManager.bounds(state, width, getHeight(), screenWidth, screenHeight);
+
+        HudLayoutManager.renderBackground(graphics, state, bounds);
+        HudLayoutManager.pushWidgetTransform(graphics, bounds);
 
         for (int i = 0; i < SLOTS; i++) {
-            int slotX = x + i * (SLOT + GAP);
-            renderSlot(graphics, font, i, JobSkillsClientCache.getHotbarSlot(i), slotX, y);
+            int slotX = i * (SLOT + GAP);
+            renderSlot(graphics, font, i, JobSkillsClientCache.getHotbarSlot(i), slotX, 0);
         }
 
         if (ClientCombatState.isCombatModeEnabled()) {
-            graphics.drawCenteredString(font, "COMBAT", screenWidth / 2, y + HEIGHT - 8, 0xFFFFD166);
+            graphics.drawCenteredString(font, Component.translatable("screen.ragnarmmo.hotbar.combat_mode"),
+                    width / 2, HEIGHT - 8, 0xFFFFD166);
         }
+
+        HudLayoutManager.popWidgetTransform(graphics);
     }
 
     private static void renderSlot(GuiGraphics graphics, Font font, int index, ResourceLocation skillId, int x, int y) {
@@ -78,6 +96,24 @@ public final class JobsHudOverlay {
                 .orElse(skillId.getPath());
         label = abbreviate(label);
         graphics.drawCenteredString(font, label, x + SLOT / 2, y + 13, 0xFFFFFFFF);
+    }
+
+    public static int getWidth() {
+        return SLOTS * SLOT + (SLOTS - 1) * GAP;
+    }
+
+    public static int getHeight() {
+        return HEIGHT;
+    }
+
+    public static int renderPreview(GuiGraphics graphics, Font font, int width) {
+        for (int i = 0; i < SLOTS; i++) {
+            int slotX = i * (SLOT + GAP);
+            renderSlot(graphics, font, i, null, slotX, 0);
+        }
+        graphics.drawCenteredString(font, Component.translatable("screen.ragnarmmo.hotbar.combat_mode"),
+                width / 2, HEIGHT - 8, 0xFFFFD166);
+        return HEIGHT;
     }
 
     private static String abbreviate(String label) {
