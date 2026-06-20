@@ -1,6 +1,7 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
+${mixin_configs}
 
 [[mods]]
 modId="${mod_id}"

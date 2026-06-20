@@ -16,6 +16,12 @@ public final class RoItemsNetwork {
                 .consumerMainThread(SyncRoItemRulesPacket::handle)
                 .add();
 
+        ch.messageBuilder(SyncRagnarEquipmentPacket.class, id.getAndIncrement(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SyncRagnarEquipmentPacket::encode)
+                .decoder(SyncRagnarEquipmentPacket::decode)
+                .consumerMainThread(SyncRagnarEquipmentPacket::handle)
+                .add();
+
         ch.messageBuilder(CardCompoundPacket.class, id.getAndIncrement(), NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CardCompoundPacket::encode)
                 .decoder(CardCompoundPacket::decode)

@@ -9,6 +9,7 @@ ext.ragnarmmo_mod_dependencies = '''
     ordering="AFTER"
     side="BOTH"
 '''
+ext.ragnarmmo_mixin_configs = 'mixinConfigs="ragnarmmo_items.mixins.json"'
 description = 'Equipment, weapons, cards, refinement, loot, recipes and utility items without wallet or zeny ownership.'
 
 apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')

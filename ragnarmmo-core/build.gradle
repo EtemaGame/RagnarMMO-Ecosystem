@@ -22,6 +22,7 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            arg '-mixin.config=ragnarmmo_items.mixins.json'
 
             mods {
                 ragnarmmo_core {
