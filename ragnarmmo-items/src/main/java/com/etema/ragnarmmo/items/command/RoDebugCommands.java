@@ -1,14 +1,8 @@
 package com.etema.ragnarmmo.items.command;
 
-import com.etema.ragnarmmo.economy.zeny.ZenyWalletHelper;
 import com.etema.ragnarmmo.items.RagnarMMOItems;
-import com.etema.ragnarmmo.items.runtime.RoItemNbtHelper;
 import com.etema.ragnarmmo.items.runtime.RoItemRuleResolver;
-import com.etema.ragnarmmo.items.runtime.RoItemTextHelper;
-import com.etema.ragnarmmo.items.runtime.RoRefineMath;
-import com.etema.ragnarmmo.items.runtime.RoRefineService;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -39,11 +33,6 @@ public final class RoDebugCommands {
         dispatcher.register(Commands.literal("roitems")
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("dump_held_item").executes(RoDebugCommands::dumpHeldItem))
-                .then(Commands.literal("refine")
-                        .then(Commands.argument("level", IntegerArgumentType.integer(0, RoItemNbtHelper.MAX_REFINE_LEVEL))
-                                .executes(RoDebugCommands::setHeldRefine)))
-                .then(Commands.literal("refine_info").executes(RoDebugCommands::showRefineInfo))
-                .then(Commands.literal("try_refine").executes(RoDebugCommands::tryRefineHeldItem))
                 .then(Commands.literal("template").executes(RoDebugCommands::generateTemplate)));
     }
 
@@ -59,103 +48,7 @@ public final class RoDebugCommands {
             ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
             context.getSource().sendSuccess(() -> Component.literal("Held Item ID: " + id), false);
             context.getSource().sendSuccess(() -> Component.literal("Has RO Rule: " + (!RoItemRuleResolver.resolve(stack).isEmpty() ? "YES" : "NO")), false);
-            context.getSource().sendSuccess(() -> Component.literal("Refine: +" + RoItemNbtHelper.getRefineLevel(stack)), false);
             return 1;
-        } catch (Exception e) {
-            context.getSource().sendFailure(Component.literal("Error: " + e.getMessage()));
-            return 0;
-        }
-    }
-
-    private static int setHeldRefine(CommandContext<CommandSourceStack> context) {
-        try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
-            ItemStack stack = player.getMainHandItem();
-            if (stack.isEmpty()) {
-                context.getSource().sendFailure(Component.literal("No item in main hand."));
-                return 0;
-            }
-            if (!RoRefineMath.isRefinable(stack)) {
-                context.getSource().sendFailure(Component.literal("Held item is not refinable."));
-                return 0;
-            }
-
-            int level = IntegerArgumentType.getInteger(context, "level");
-            RoItemNbtHelper.setRefineLevel(stack, level);
-            context.getSource().sendSuccess(() -> Component.literal("Refine set: " + RoItemTextHelper.getDisplayNameString(stack)), false);
-            return 1;
-        } catch (Exception e) {
-            context.getSource().sendFailure(Component.literal("Error: " + e.getMessage()));
-            return 0;
-        }
-    }
-
-    private static int showRefineInfo(CommandContext<CommandSourceStack> context) {
-        try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
-            ItemStack stack = player.getMainHandItem();
-            if (stack.isEmpty()) {
-                context.getSource().sendFailure(Component.literal("No item in main hand."));
-                return 0;
-            }
-
-            RoRefineService.RefineQuote quote = RoRefineService.quote(player, stack);
-            switch (quote.outcome()) {
-                case INVALID_ITEM -> context.getSource().sendFailure(Component.literal("Held item is not refinable."));
-                case MAX_REACHED -> context.getSource().sendFailure(Component.literal(
-                        RoItemTextHelper.getDisplayNameString(stack) + " is already at max refine."));
-                default -> {
-                    String chanceText = quote.safe() ? "SAFE" : Math.round(quote.successChance() * 100.0) + "%";
-                    context.getSource().sendSuccess(() -> Component.literal(
-                            "Refine +" + quote.currentLevel() + " -> +" + quote.targetLevel()
-                                    + " | Material: " + quote.material().getHoverName().getString() + " x" + quote.materialCount()
-                                    + " (" + quote.availableMaterial() + " owned)"
-                                    + " | Cost: " + ZenyWalletHelper.formatZeny(quote.zenyCost())
-                                    + " (" + ZenyWalletHelper.formatZeny(quote.availableZeny()) + " owned)"
-                                    + " | Chance: " + chanceText),
-                            false);
-                }
-            }
-            return 1;
-        } catch (Exception e) {
-            context.getSource().sendFailure(Component.literal("Error: " + e.getMessage()));
-            return 0;
-        }
-    }
-
-    private static int tryRefineHeldItem(CommandContext<CommandSourceStack> context) {
-        try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
-            ItemStack stack = player.getMainHandItem();
-            if (stack.isEmpty()) {
-                context.getSource().sendFailure(Component.literal("No item in main hand."));
-                return 0;
-            }
-
-            RoRefineService.RefineResult result = RoRefineService.attempt(player, stack);
-            RoRefineService.RefineQuote quote = result.quote();
-            switch (result.outcome()) {
-                case SUCCESS -> context.getSource().sendSuccess(() -> Component.literal(
-                        "Refine success: " + RoItemTextHelper.getDisplayNameString(stack)
-                                + " (spent " + ZenyWalletHelper.formatZeny(quote.zenyCost())
-                                + " + " + quote.material().getHoverName().getString() + " x" + quote.materialCount() + ")"),
-                        false);
-                case FAILURE_DOWNGRADE -> context.getSource().sendFailure(Component.literal(
-                        "Refine failed: " + RoItemTextHelper.getDisplayNameString(stack)
-                                + " after spending " + ZenyWalletHelper.formatZeny(quote.zenyCost()) + "."));
-                case FAILURE_STABLE -> context.getSource().sendFailure(Component.literal(
-                        "Refine failed: " + RoItemTextHelper.getDisplayNameString(stack) + "."));
-                case MISSING_MATERIAL -> context.getSource().sendFailure(Component.literal(
-                        "Missing material: need " + quote.material().getHoverName().getString() + " x" + quote.materialCount()
-                                + " but only have " + quote.availableMaterial() + "."));
-                case MISSING_ZENY -> context.getSource().sendFailure(Component.literal(
-                        "Missing zeny: need " + ZenyWalletHelper.formatZeny(quote.zenyCost())
-                                + " but only have " + ZenyWalletHelper.formatZeny(quote.availableZeny()) + "."));
-                case MAX_REACHED -> context.getSource().sendFailure(Component.literal(
-                        RoItemTextHelper.getDisplayNameString(stack) + " is already at max refine."));
-                default -> context.getSource().sendFailure(Component.literal("Held item is not refinable."));
-            }
-            return result.outcome() == RoRefineService.RefineOutcome.SUCCESS ? 1 : 0;
         } catch (Exception e) {
             context.getSource().sendFailure(Component.literal("Error: " + e.getMessage()));
             return 0;

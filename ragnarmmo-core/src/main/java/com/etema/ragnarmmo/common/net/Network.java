@@ -36,6 +36,10 @@ public final class Network {
     }
 
     public static void registerCorePackets() {
+        ensureCorePacketsRegistered();
+    }
+
+    private static synchronized void ensureCorePacketsRegistered() {
         if (corePacketsRegistered) {
             return;
         }
@@ -44,12 +48,14 @@ public final class Network {
     }
 
     public static void registerPackets(BiConsumer<SimpleChannel, AtomicInteger> registrar) {
+        ensureCorePacketsRegistered();
         if (registrar != null) {
             registrar.accept(CH, NEXT_ID);
         }
     }
 
     public static <T> void sendToPlayer(ServerPlayer player, T msg) {
+        ensureCorePacketsRegistered();
         if (player == null || player.connection == null) {
             return;
         }
@@ -57,10 +63,12 @@ public final class Network {
     }
 
     public static <T> void sendToServer(T msg) {
+        ensureCorePacketsRegistered();
         CH.sendToServer(msg);
     }
 
     public static <T> void sendTrackingEntityAndSelf(Entity entity, T msg) {
+        ensureCorePacketsRegistered();
         if (entity == null) {
             return;
         }
@@ -68,6 +76,7 @@ public final class Network {
     }
 
     public static <T> void sendToTrackingEntity(Entity entity, T msg) {
+        ensureCorePacketsRegistered();
         if (entity == null) {
             return;
         }

@@ -10,11 +10,6 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(modid = com.etema.ragnarmmo.jobs.RagnarMMOJobs.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class JobsKeybinds {
     private static final String CATEGORY = "key.categories.ragnarmmo";
-
-    public static final KeyMapping OPEN_SKILLS = new KeyMapping(
-            "key.ragnarmmo.open_skills",
-            GLFW.GLFW_KEY_K,
-            CATEGORY);
     public static final KeyMapping[] HOTBAR_KEYS = new KeyMapping[6];
 
     static {
@@ -29,7 +24,6 @@ public final class JobsKeybinds {
 
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
-        event.register(OPEN_SKILLS);
         for (KeyMapping key : HOTBAR_KEYS) {
             event.register(key);
         }

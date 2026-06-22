@@ -1,6 +1,7 @@
 ext.ragnarmmo_mod_id = 'ragnarmmo_core'
 ext.ragnarmmo_mod_name = 'RagnarMMO Core'
 ext.ragnarmmo_mod_description = 'Shared server-side APIs, stats, progression contracts, configs, commands, networking primitives and events.'
+ext.ragnarmmo_mixin_configs = 'mixinConfigs="ragnarmmo_core.mixins.json"'
 description = 'Shared server-side APIs, stats, progression contracts, configs, commands, networking primitives and events.'
 
 apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')
@@ -22,7 +23,9 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            arg '-mixin.config=ragnarmmo_core.mixins.json'
             arg '-mixin.config=ragnarmmo_items.mixins.json'
+            arg '-mixin.config=ragnarmmo_jobs.mixins.json'
 
             mods {
                 ragnarmmo_core {
@@ -51,5 +54,19 @@ minecraft {
                 }
             }
         }
+    }
+}
+
+afterEvaluate {
+    tasks.matching { it.name == 'runClient' }.configureEach {
+        dependsOn [
+                ':ragnarmmo-combat:classes',
+                ':ragnarmmo-jobs:classes',
+                ':ragnarmmo-items:classes',
+                ':ragnarmmo-economy:classes',
+                ':ragnarmmo-lifeskills:classes',
+                ':ragnarmmo-mobs:classes',
+                ':ragnarmmo-social:classes',
+        ]
     }
 }

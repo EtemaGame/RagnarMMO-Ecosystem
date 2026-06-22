@@ -1,6 +1,5 @@
 {
   "tooltip.ragnarmmo.header": "RagnarMMO",
-  "tooltip.ragnarmmo.refine": "+%s Refine",
   "tooltip.ragnarmmo.cards": "Cards: %s",
   "tooltip.ragnarmmo.cards_shift": "[SHIFT] Card IDs",
   "tooltip.ragnarmmo.required_base": "Required Base Lv. %s",

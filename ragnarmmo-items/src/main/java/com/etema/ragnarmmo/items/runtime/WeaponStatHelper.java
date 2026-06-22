@@ -33,7 +33,7 @@ public final class WeaponStatHelper {
     public static double getDisplayedMagicAttack(ItemStack stack) {
         double configuredMagic = getConfiguredMagicAttackBase(stack);
         if (configuredMagic > 0.0D) {
-            return configuredMagic + RoRefineMath.getAttackBonus(stack);
+            return configuredMagic;
         }
 
         if (!isMagicWeapon(stack)) {
@@ -41,7 +41,7 @@ public final class WeaponStatHelper {
         }
 
         double base = 1.0D + sumAttribute(stack.getAttributeModifiers(EquipmentSlot.MAINHAND), Attributes.ATTACK_DAMAGE)
-                + RoRefineMath.getAttackBonus(stack);
+                ;
 
         boolean staff = stack.getTags().anyMatch(tag -> tag.location().getPath().contains("staves"));
         return Math.max(0.0D, staff ? base + 1.0D : base);

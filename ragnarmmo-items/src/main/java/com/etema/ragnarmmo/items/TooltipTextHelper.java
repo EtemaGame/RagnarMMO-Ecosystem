@@ -1,7 +1,6 @@
 package com.etema.ragnarmmo.items;
 
 import com.etema.ragnarmmo.items.runtime.RagnarRangedWeaponStats;
-import com.etema.ragnarmmo.items.runtime.RoRefineMath;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -27,7 +26,7 @@ final class TooltipTextHelper {
     }
 
     static void appendRangedStats(List<Component> tooltip, RagnarRangedWeaponStats stats, ItemStack stack) {
-        double atk = stats.getRangedWeaponAtk(stack) + RoRefineMath.getAttackBonus(stack);
+        double atk = stats.getRangedWeaponAtk(stack);
         int aspd = stats.getBaseRangedAspd(stack);
         int ticks = stats.getBaseDrawTicks(stack);
 

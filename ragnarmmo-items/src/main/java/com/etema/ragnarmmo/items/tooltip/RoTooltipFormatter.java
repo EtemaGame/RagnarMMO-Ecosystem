@@ -3,7 +3,6 @@ package com.etema.ragnarmmo.items.tooltip;
 import com.etema.ragnarmmo.common.api.stats.StatKeys;
 import com.etema.ragnarmmo.items.data.RoItemRule;
 import com.etema.ragnarmmo.items.runtime.RoItemNbtHelper;
-import com.etema.ragnarmmo.items.runtime.RoItemTextHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -18,18 +17,14 @@ public final class RoTooltipFormatter {
     }
 
     public static void addTooltipLines(List<Component> tooltip, ItemStack stack, RoItemRule rule, Player player) {
-        int refine = RoItemNbtHelper.getRefineLevel(stack);
         List<String> cards = RoItemNbtHelper.getSlottedCards(stack);
         boolean hasRule = rule != null && !rule.isEmpty();
-        if (!hasRule && refine <= 0 && cards.isEmpty()) {
+        if (!hasRule && cards.isEmpty()) {
             return;
         }
 
         tooltip.add(Component.literal(""));
         tooltip.add(Component.translatable("tooltip.ragnarmmo.header").withStyle(ChatFormatting.GOLD));
-        if (refine > 0) {
-            tooltip.add(Component.translatable("tooltip.ragnarmmo.refine", refine).withStyle(ChatFormatting.AQUA));
-        }
         if (hasRule) {
             appendRuleTooltip(tooltip, rule);
         }

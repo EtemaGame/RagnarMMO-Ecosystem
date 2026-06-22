@@ -4,7 +4,6 @@ import com.etema.ragnarmmo.items.RagnarMMOItems;
 import com.etema.ragnarmmo.items.data.RoItemRule;
 import com.etema.ragnarmmo.items.runtime.RoItemNbtHelper;
 import com.etema.ragnarmmo.items.runtime.RoItemRuleResolver;
-import com.etema.ragnarmmo.items.runtime.RoItemTextHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,13 +26,8 @@ public final class RoTooltipHook {
         }
 
         RoItemRule rule = RoItemRuleResolver.resolve(stack);
-        int refineLevel = RoItemNbtHelper.getRefineLevel(stack);
-        if ((rule == null || rule.isEmpty()) && refineLevel <= 0 && RoItemNbtHelper.getSlottedCards(stack).isEmpty()) {
+        if ((rule == null || rule.isEmpty()) && RoItemNbtHelper.getSlottedCards(stack).isEmpty()) {
             return;
-        }
-
-        if (!event.getToolTip().isEmpty()) {
-            event.getToolTip().set(0, RoItemTextHelper.getDisplayName(stack));
         }
 
         Player player = Minecraft.getInstance().player;

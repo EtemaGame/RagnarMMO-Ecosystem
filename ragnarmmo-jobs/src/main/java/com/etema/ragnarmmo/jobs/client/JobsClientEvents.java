@@ -1,7 +1,6 @@
 package com.etema.ragnarmmo.jobs.client;
 
 import com.etema.ragnarmmo.combat.client.ClientCombatState;
-import com.etema.ragnarmmo.jobs.client.ui.SkillsScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -22,10 +21,6 @@ public final class JobsClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
-        }
-
-        while (JobsKeybinds.OPEN_SKILLS.consumeClick()) {
-            minecraft.setScreen(new SkillsScreen(null));
         }
 
         if (minecraft.screen == null && ClientCombatState.isCombatModeEnabled()) {

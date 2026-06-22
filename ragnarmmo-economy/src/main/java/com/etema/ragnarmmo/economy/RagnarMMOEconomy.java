@@ -14,6 +14,6 @@ public final class RagnarMMOEconomy {
     public RagnarMMOEconomy() {
         var modBus = FMLJavaModLoadingContext.get().getModEventBus();
         ZenyItems.register(modBus);
-        Network.registerPackets(EconomyNetwork::register);
+        EconomyNetwork.registerOnce();
     }
 }

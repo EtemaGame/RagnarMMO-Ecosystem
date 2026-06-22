@@ -4,13 +4,8 @@
   "package": "com.etema.ragnarmmo.items.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "ragnarmmo_items.refmap.json",
-  "mixins": [
-    "AbstractContainerMenuAccessor",
-    "InventoryMenuMixin"
-  ],
-  "client": [
-    "InventoryScreenMixin"
-  ],
+  "mixins": [],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

@@ -1,7 +1,6 @@
 package com.etema.ragnarmmo.core.client;
 
 import com.etema.ragnarmmo.core.RagnarMMOCore;
-import com.etema.ragnarmmo.core.client.ui.StatsScreen;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
@@ -20,20 +19,13 @@ public final class CoreClientCommands {
     public static void register(RegisterClientCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         var root = dispatcher.register(Commands.literal("r")
-                .then(Commands.literal("hud").executes(ctx -> openHud()))
-                .then(Commands.literal("stats").executes(ctx -> openStats())));
+                .then(Commands.literal("hud").executes(ctx -> openHud())));
         dispatcher.register(Commands.literal("hud").redirect(root.getChild("hud")));
-        dispatcher.register(Commands.literal("stats").redirect(root.getChild("stats")));
     }
 
     private static int openHud() {
         Minecraft minecraft = Minecraft.getInstance();
         HudOverlayScreenRegistry.open(minecraft);
-        return 1;
-    }
-
-    private static int openStats() {
-        Minecraft.getInstance().tell(() -> Minecraft.getInstance().setScreen(new StatsScreen()));
         return 1;
     }
 }

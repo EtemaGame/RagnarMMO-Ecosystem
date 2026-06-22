@@ -20,6 +20,7 @@ public record SkillDefinition(
         int castDelayTicks,
         int baseCost,
         int costPerLevel,
+        String texture,
         Map<ResourceLocation, Integer> requirements,
         Map<Integer, Map<String, Double>> levelData,
         Set<JobType> jobs) implements ISkillDefinition {
@@ -35,6 +36,7 @@ public record SkillDefinition(
     @Override public int getCastDelayTicks() { return castDelayTicks; }
     @Override public int getBaseCost() { return baseCost; }
     @Override public int getCostPerLevel() { return costPerLevel; }
+    public String texture() { return texture; }
     @Override public Map<ResourceLocation, Integer> getRequirements() { return requirements; }
     @Override public Map<Integer, Map<String, Double>> getLevelDataMap() { return levelData; }
     @Override public Set<JobType> getJobs() { return jobs; }

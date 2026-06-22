@@ -43,7 +43,7 @@ public final class RangedWeaponStatsHelper {
 
         if (stack.getItem() instanceof RagnarRangedWeaponStats rangedStats) {
             return Optional.of(new ResolvedRangedWeaponStats(
-                    rangedStats.getRangedWeaponAtk(stack) + RoRefineMath.getAttackBonus(stack),
+                    rangedStats.getRangedWeaponAtk(stack),
                     rangedStats.getBaseRangedAspd(stack),
                     rangedStats.getBaseDrawTicks(stack),
                     rangedStats.getProjectileVelocity(stack)));
@@ -58,12 +58,12 @@ public final class RangedWeaponStatsHelper {
             int aspd = profile.aspd() > 0 ? profile.aspd() : com.etema.ragnarmmo.player.stats.compute.CombatMath.getWeaponBaseASPD(stack);
             int drawTicks = profile.drawTicks() > 0 ? profile.drawTicks() : DEFAULT_BOW_DRAW_TICKS;
             float velocity = profile.projectileVelocity() > 0.0F ? profile.projectileVelocity() : DEFAULT_BOW_VELOCITY;
-            return Optional.of(new ResolvedRangedWeaponStats(atk + RoRefineMath.getAttackBonus(stack), aspd, drawTicks, velocity));
+            return Optional.of(new ResolvedRangedWeaponStats(atk, aspd, drawTicks, velocity));
         }
 
         if (stack.getItem() instanceof BowItem) {
             return Optional.of(new ResolvedRangedWeaponStats(
-                    DEFAULT_BOW_ATK + RoRefineMath.getAttackBonus(stack),
+                    DEFAULT_BOW_ATK,
                     com.etema.ragnarmmo.player.stats.compute.CombatMath.getWeaponBaseASPD(stack),
                     DEFAULT_BOW_DRAW_TICKS,
                     DEFAULT_BOW_VELOCITY));
@@ -71,7 +71,7 @@ public final class RangedWeaponStatsHelper {
 
         if (stack.getItem() instanceof CrossbowItem) {
             return Optional.of(new ResolvedRangedWeaponStats(
-                    DEFAULT_CROSSBOW_ATK + RoRefineMath.getAttackBonus(stack),
+                    DEFAULT_CROSSBOW_ATK,
                     com.etema.ragnarmmo.player.stats.compute.CombatMath.getWeaponBaseASPD(stack),
                     DEFAULT_CROSSBOW_DRAW_TICKS,
                     DEFAULT_CROSSBOW_VELOCITY));

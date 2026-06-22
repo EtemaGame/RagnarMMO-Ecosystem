@@ -9,7 +9,6 @@ import com.etema.ragnarmmo.core.api.stats.DerivedStatsService;
 import com.etema.ragnarmmo.player.stats.compute.RoPreRenewalFormulaService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -91,21 +90,14 @@ public final class ItemDerivedStatsContributor {
         double configuredAttack = WeaponStatHelper.getConfiguredPhysicalAttackBase(main);
         float enchantDamage = EnchantmentHelper.getDamageBonus(main, MobType.UNDEFINED);
         if (configuredAttack > 0.0D) {
-            return Math.max(0.0D, configuredAttack + enchantDamage + RoRefineMath.getAttackBonus(main));
+            return Math.max(0.0D, configuredAttack + enchantDamage);
         }
 
-        return Math.max(1.0D, 1.0D + enchantDamage + RoRefineMath.getAttackBonus(main));
+        return Math.max(1.0D, 1.0D + enchantDamage);
     }
 
     private static double computeArmorHardDefense(ServerPlayer player) {
-        double hardDefense = 0.0D;
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            ItemStack stack = player.getItemBySlot(slot);
-            if (!stack.isEmpty()) {
-                hardDefense += RoRefineMath.getDefenseBonus(stack);
-            }
-        }
-        return hardDefense;
+        return 0.0D;
     }
 
     private static double computeArmorHardMagicDefense(ServerPlayer player) {
@@ -113,17 +105,6 @@ public final class ItemDerivedStatsContributor {
         var magicDefense = player.getAttribute(RagnarAttributes.MAGIC_DEFENSE.get());
         if (magicDefense != null) {
             hardMagicDefense += magicDefense.getValue();
-        }
-
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            ItemStack stack = player.getItemBySlot(slot);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            int refine = RoItemNbtHelper.getRefineLevel(stack);
-            if (refine >= 5) {
-                hardMagicDefense += refine - 4.0D;
-            }
         }
         return hardMagicDefense;
     }

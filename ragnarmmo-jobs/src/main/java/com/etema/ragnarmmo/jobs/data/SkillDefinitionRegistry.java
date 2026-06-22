@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -62,6 +63,16 @@ public final class SkillDefinitionRegistry {
             }
         }
         return false;
+    }
+
+    public static List<ResourceLocation> getTreeSkillIds(String treeFile) {
+        bootstrap();
+        if (treeFile == null || treeFile.isBlank()) {
+            return List.of();
+        }
+        ResourceLocation treeId = ResourceLocation.fromNamespaceAndPath("ragnarmmo", treeFile);
+        Set<ResourceLocation> ids = TREE_SKILLS.get(treeId);
+        return ids == null ? List.of() : List.copyOf(ids);
     }
 
     private static void loadTree(ClassLoader loader, String file) {
@@ -119,6 +130,13 @@ public final class SkillDefinitionRegistry {
                     : new JsonObject();
             int baseCost = costs.has("base_cost") ? costs.get("base_cost").getAsInt() : 0;
             int costPerLevel = costs.has("cost_per_level") ? costs.get("cost_per_level").getAsInt() : 0;
+            String texture = "";
+            if (root.has("ui") && root.get("ui").isJsonObject()) {
+                JsonObject ui = root.getAsJsonObject("ui");
+                if (ui.has("texture")) {
+                    texture = ui.get("texture").getAsString();
+                }
+            }
 
             Map<ResourceLocation, Integer> requirements = new LinkedHashMap<>();
             if (root.has("requirements") && root.get("requirements").isJsonObject()) {
@@ -171,6 +189,7 @@ public final class SkillDefinitionRegistry {
                     Math.max(0, castDelayTicks),
                     Math.max(0, baseCost),
                     Math.max(0, costPerLevel),
+                    texture,
                     Map.copyOf(requirements),
                     Map.copyOf(levelData),
                     Set.copyOf(jobs)));

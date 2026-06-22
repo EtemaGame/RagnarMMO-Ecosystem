@@ -3,6 +3,7 @@ package com.etema.ragnarmmo.economy.zeny;
 import com.etema.ragnarmmo.common.net.Network;
 import com.etema.ragnarmmo.economy.RagnarMMOEconomy;
 import com.etema.ragnarmmo.economy.zeny.capability.PlayerWalletProvider;
+import com.etema.ragnarmmo.economy.zeny.network.EconomyNetwork;
 import com.etema.ragnarmmo.economy.zeny.network.WalletSyncPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,6 +59,7 @@ public final class EconomyEventHandler {
 
     private static void syncWallet(Player player) {
         if (player instanceof ServerPlayer serverPlayer && !player.level().isClientSide) {
+            EconomyNetwork.registerOnce();
             PlayerWalletProvider.get(player).ifPresent(wallet ->
                     Network.sendToPlayer(serverPlayer, new WalletSyncPacket(wallet.getZeny())));
         }

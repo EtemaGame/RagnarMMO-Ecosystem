@@ -44,6 +44,7 @@ tasks.register('modularBuild') {
 tasks.register('runClient') {
     group = 'ragnarmmo'
     description = 'Launches the modular RagnarMMO client dev run from the core project.'
+    dependsOn ecosystemModules.collect { ":${it}:classes" }
     dependsOn ':ragnarmmo-core:runClient'
 }
 

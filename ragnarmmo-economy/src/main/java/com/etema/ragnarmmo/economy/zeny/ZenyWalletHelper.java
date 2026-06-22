@@ -1,6 +1,7 @@
 package com.etema.ragnarmmo.economy.zeny;
 
 import com.etema.ragnarmmo.economy.zeny.capability.PlayerWalletProvider;
+import com.etema.ragnarmmo.economy.zeny.network.EconomyNetwork;
 import com.etema.ragnarmmo.economy.zeny.network.WalletSyncPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -70,6 +71,7 @@ public final class ZenyWalletHelper {
     }
 
     private static void sync(ServerPlayer player, long balance) {
+        EconomyNetwork.registerOnce();
         com.etema.ragnarmmo.common.net.Network.sendToPlayer(player, new WalletSyncPacket(balance));
     }
 }

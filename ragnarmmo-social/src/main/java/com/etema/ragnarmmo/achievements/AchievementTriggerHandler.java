@@ -2,6 +2,7 @@ package com.etema.ragnarmmo.achievements;
 
 import com.etema.ragnarmmo.social.RagnarMMOSocial;
 import com.etema.ragnarmmo.achievements.capability.PlayerAchievementsProvider;
+import com.etema.ragnarmmo.achievements.capability.IPlayerAchievements;
 import com.etema.ragnarmmo.achievements.data.AchievementDefinition;
 import com.etema.ragnarmmo.achievements.data.AchievementRegistry;
 import net.minecraft.resources.ResourceLocation;
@@ -63,11 +64,8 @@ public class AchievementTriggerHandler {
     @SubscribeEvent
     public static void onPlayerJoin(net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            player.getCapability(PlayerAchievementsProvider.PLAYER_ACHIEVEMENTS).ifPresent(cap -> {
-                com.etema.ragnarmmo.common.net.Network.sendToPlayer(player,
-                        new com.etema.ragnarmmo.achievements.network.SyncAchievementsPacket(
-                                player.getId(), (net.minecraft.nbt.CompoundTag) cap.serializeNBT()));
-            });
+            player.server.execute(() -> player.getCapability(PlayerAchievementsProvider.PLAYER_ACHIEVEMENTS)
+                    .ifPresent(cap -> safeSendSync(player, cap)));
         }
     }
 
@@ -150,11 +148,20 @@ public class AchievementTriggerHandler {
             }
 
             if (didUpdate) {
-                com.etema.ragnarmmo.common.net.Network.sendToPlayer(player,
-                        new com.etema.ragnarmmo.achievements.network.SyncAchievementsPacket(
-                                player.getId(), (net.minecraft.nbt.CompoundTag) cap.serializeNBT()));
+                safeSendSync(player, cap);
             }
         });
+    }
+
+    private static void safeSendSync(ServerPlayer player, IPlayerAchievements cap) {
+        try {
+            com.etema.ragnarmmo.common.net.Network.sendToPlayer(player,
+                    new com.etema.ragnarmmo.achievements.network.SyncAchievementsPacket(
+                            player.getId(), (net.minecraft.nbt.CompoundTag) cap.serializeNBT()));
+        } catch (IllegalArgumentException ex) {
+            RagnarMMOSocial.LOGGER.warn("Skipped achievements sync for {} because the packet channel was not ready: {}",
+                    player.getGameProfile().getName(), ex.getMessage());
+        }
     }
 
     private static void notifyPlayerUnlocked(ServerPlayer player, AchievementDefinition def) {

@@ -1,6 +1,7 @@
 ext.ragnarmmo_mod_id = 'ragnarmmo_jobs'
 ext.ragnarmmo_mod_name = 'RagnarMMO Jobs'
 ext.ragnarmmo_mod_description = 'Playable jobs, job trees, job skills, hotbar execution, requirements and Job Lv point spending.'
+ext.ragnarmmo_mixin_configs = 'mixinConfigs="ragnarmmo_jobs.mixins.json"'
 ext.ragnarmmo_mod_dependencies = '''
 [[dependencies.ragnarmmo_jobs]]
     modId="ragnarmmo_core"

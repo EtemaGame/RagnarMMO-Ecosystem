@@ -75,6 +75,7 @@ public class PlayerStatsProvider implements ICapabilityProvider, INBTSerializabl
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             resolveAndSync(player);
+            fullHeal(player);
         }
     }
 
@@ -82,6 +83,7 @@ public class PlayerStatsProvider implements ICapabilityProvider, INBTSerializabl
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             resolveAndSync(player);
+            fullHeal(player);
         }
     }
 
@@ -94,6 +96,16 @@ public class PlayerStatsProvider implements ICapabilityProvider, INBTSerializabl
 
     private static void resolveAndSync(ServerPlayer player) {
         player.getCapability(CAP).ifPresent(stats -> StatResolutionService.resolve(player, stats));
+    }
+
+    private static void fullHeal(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        float maxHealth = player.getMaxHealth();
+        if (maxHealth > 0.0F) {
+            player.setHealth(maxHealth);
+        }
     }
 
     @Override
