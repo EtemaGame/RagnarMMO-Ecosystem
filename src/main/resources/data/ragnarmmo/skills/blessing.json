@@ -1,0 +1,45 @@
+{
+    "id": "ragnarmmo:blessing",
+    "display_name": "Blessing",
+    "category": "CLASS_ACTIVE",
+    "tier": "FIRST",
+    "usage": "ACTIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "costs": {
+        "base_cost": 0,
+        "cost_per_level": 0
+    },
+    "cooldown_ticks": 0,
+    "jobs": [
+        "ACOLYTE"
+    ],
+    "requirements": {
+        "ragnarmmo:divine_protection": 5
+    },
+    "ui": {
+        "texture": "acolyte/acolyte_blessing",
+        "grid_x": 1,
+        "grid_y": 1
+    },
+    "reference": {
+        "notes": "Blessing: +1 to +10 STR/DEX/INT, 28-64 SP, 60-240 sec duration by level."
+    },
+    "level_data": {
+        "1": { "sp_cost": 28, "stat_bonus": 1, "duration_ticks": 1200, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 32, "stat_bonus": 2, "duration_ticks": 1600, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "3": { "sp_cost": 36, "stat_bonus": 3, "duration_ticks": 2000, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "4": { "sp_cost": 40, "stat_bonus": 4, "duration_ticks": 2400, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "5": { "sp_cost": 44, "stat_bonus": 5, "duration_ticks": 2800, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "6": { "sp_cost": 48, "stat_bonus": 6, "duration_ticks": 3200, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "7": { "sp_cost": 52, "stat_bonus": 7, "duration_ticks": 3600, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "8": { "sp_cost": 56, "stat_bonus": 8, "duration_ticks": 4000, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "9": { "sp_cost": 60, "stat_bonus": 9, "duration_ticks": 4400, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
+        "10": { "sp_cost": 64, "stat_bonus": 10, "duration_ticks": 4800, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.acolyte.BlessingSkillEffect"
+}

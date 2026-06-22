@@ -1,0 +1,40 @@
+{
+    "id": "ragnarmmo:vultures_eye",
+    "display_name": "Vulture's Eye",
+    "category": "CLASS_PASSIVE",
+    "tier": "FIRST",
+    "usage": "PASSIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "jobs": [
+        "ARCHER"
+    ],
+    "requirements": {
+        "ragnarmmo:owls_eye": 3
+    },
+    "ui": {
+        "texture": "archer/archer_vulture_s_eye",
+        "grid_x": 0,
+        "grid_y": 1
+    },
+    "reference": {
+        "notes": "Vulture's Eye: RO_ADAPTED as accuracy and effective projectile range. It must not provide direct damage."
+    },
+    "level_data": {
+        "1": { "accuracy_bonus": 1, "range_bonus": 1 },
+        "2": { "accuracy_bonus": 2, "range_bonus": 2 },
+        "3": { "accuracy_bonus": 3, "range_bonus": 3 },
+        "4": { "accuracy_bonus": 4, "range_bonus": 4 },
+        "5": { "accuracy_bonus": 5, "range_bonus": 5 },
+        "6": { "accuracy_bonus": 6, "range_bonus": 6 },
+        "7": { "accuracy_bonus": 7, "range_bonus": 7 },
+        "8": { "accuracy_bonus": 8, "range_bonus": 8 },
+        "9": { "accuracy_bonus": 9, "range_bonus": 9 },
+        "10": { "accuracy_bonus": 10, "range_bonus": 10 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.archer.VulturesEyeSkillEffect"
+}

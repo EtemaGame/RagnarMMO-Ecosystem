@@ -1,0 +1,45 @@
+{
+    "id": "ragnarmmo:improve_concentration",
+    "display_name": "Attention Concentrate",
+    "category": "CLASS_ACTIVE",
+    "tier": "FIRST",
+    "usage": "ACTIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "costs": {
+        "base_cost": 0,
+        "cost_per_level": 0
+    },
+    "cooldown_ticks": 0,
+    "jobs": [
+        "ARCHER"
+    ],
+    "requirements": {
+        "ragnarmmo:vultures_eye": 1
+    },
+    "ui": {
+        "texture": "archer/archer_attention_concentrate",
+        "grid_x": 0,
+        "grid_y": 2
+    },
+    "reference": {
+        "notes": "Improve Concentration: RO_ADAPTED. Duration and SP follow the classic table; AGI/DEX use a flat Minecraft-friendly amplifier and reveal is tuned separately."
+    },
+    "level_data": {
+        "1": { "sp_cost": 25, "stat_bonus_percent": 3, "duration_ticks": 1200, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 30, "stat_bonus_percent": 4, "duration_ticks": 1600, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "3": { "sp_cost": 35, "stat_bonus_percent": 5, "duration_ticks": 2000, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "4": { "sp_cost": 40, "stat_bonus_percent": 6, "duration_ticks": 2400, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "5": { "sp_cost": 45, "stat_bonus_percent": 7, "duration_ticks": 2800, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "6": { "sp_cost": 50, "stat_bonus_percent": 8, "duration_ticks": 3200, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "7": { "sp_cost": 55, "stat_bonus_percent": 9, "duration_ticks": 3600, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "8": { "sp_cost": 60, "stat_bonus_percent": 10, "duration_ticks": 4000, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "9": { "sp_cost": 65, "stat_bonus_percent": 11, "duration_ticks": 4400, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "10": { "sp_cost": 70, "stat_bonus_percent": 12, "duration_ticks": 4800, "reveal_radius": 3, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.archer.ImproveConcentrationSkillEffect"
+}

@@ -1,9 +1,0 @@
-{
-  "key.ragnarmmo.toggle_combat": "Toggle Combat Mode",
-  "message.ragnarmmo.combat_mode.on": "Combat mode enabled.",
-  "message.ragnarmmo.combat_mode.off": "Combat mode disabled.",
-  "message.ragnarmmo.combat_result.hit": "Hit %s",
-  "message.ragnarmmo.combat_result.crit": "Critical %s",
-  "message.ragnarmmo.combat_result.miss": "Miss",
-  "message.ragnarmmo.combat_result.dodge": "Dodge"
-}

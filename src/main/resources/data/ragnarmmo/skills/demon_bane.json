@@ -1,0 +1,40 @@
+{
+    "id": "ragnarmmo:demon_bane",
+    "display_name": "Demon Bane",
+    "category": "CLASS_PASSIVE",
+    "tier": "FIRST",
+    "usage": "PASSIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "jobs": [
+        "ACOLYTE"
+    ],
+    "requirements": {
+        "ragnarmmo:divine_protection": 3
+    },
+    "ui": {
+        "texture": "acolyte/acolyte_demon_bane",
+        "grid_x": 0,
+        "grid_y": 2
+    },
+    "reference": {
+        "notes": "Demon Bane: RO_ADAPTED offensive bonus against undead/demon analog targets."
+    },
+    "level_data": {
+        "1": { "flat_damage_bonus_base": 3 },
+        "2": { "flat_damage_bonus_base": 6 },
+        "3": { "flat_damage_bonus_base": 9 },
+        "4": { "flat_damage_bonus_base": 12 },
+        "5": { "flat_damage_bonus_base": 15 },
+        "6": { "flat_damage_bonus_base": 18 },
+        "7": { "flat_damage_bonus_base": 21 },
+        "8": { "flat_damage_bonus_base": 24 },
+        "9": { "flat_damage_bonus_base": 27 },
+        "10": { "flat_damage_bonus_base": 30 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.acolyte.DemonBaneSkillEffect"
+}

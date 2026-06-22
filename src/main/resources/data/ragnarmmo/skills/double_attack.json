@@ -1,0 +1,38 @@
+{
+    "id": "ragnarmmo:double_attack",
+    "display_name": "Double Attack",
+    "category": "CLASS_PASSIVE",
+    "tier": "FIRST",
+    "usage": "PASSIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "jobs": [
+        "THIEF"
+    ],
+    "requirements": {},
+    "ui": {
+        "texture": "thief/thief_double_attack",
+        "grid_x": 0,
+        "grid_y": 0
+    },
+    "reference": {
+        "notes": "Double Attack: dagger-only proc; chance 5*Lv%, HIT bonus +Lv only when the proc activates."
+    },
+    "level_data": {
+        "1": { "proc_chance": 0.05, "hit_bonus": 1, "hit_count": 2 },
+        "2": { "proc_chance": 0.10, "hit_bonus": 2, "hit_count": 2 },
+        "3": { "proc_chance": 0.15, "hit_bonus": 3, "hit_count": 2 },
+        "4": { "proc_chance": 0.20, "hit_bonus": 4, "hit_count": 2 },
+        "5": { "proc_chance": 0.25, "hit_bonus": 5, "hit_count": 2 },
+        "6": { "proc_chance": 0.30, "hit_bonus": 6, "hit_count": 2 },
+        "7": { "proc_chance": 0.35, "hit_bonus": 7, "hit_count": 2 },
+        "8": { "proc_chance": 0.40, "hit_bonus": 8, "hit_count": 2 },
+        "9": { "proc_chance": 0.45, "hit_bonus": 9, "hit_count": 2 },
+        "10": { "proc_chance": 0.50, "hit_bonus": 10, "hit_count": 2 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.thief.DoubleAttackSkillEffect"
+}

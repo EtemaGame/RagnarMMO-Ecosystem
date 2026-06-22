@@ -1,0 +1,43 @@
+{
+    "id": "ragnarmmo:double_strafe",
+    "display_name": "Double Strafing",
+    "category": "CLASS_ACTIVE",
+    "tier": "FIRST",
+    "usage": "ACTIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "costs": {
+        "base_cost": 0,
+        "cost_per_level": 0
+    },
+    "cooldown_ticks": 0,
+    "jobs": [
+        "ARCHER"
+    ],
+    "requirements": {},
+    "ui": {
+        "texture": "archer/archer_double_strafing",
+        "grid_x": 1,
+        "grid_y": 0
+    },
+    "reference": {
+        "notes": "Double Strafing: RO_EXACT core. Always 2 logical bow hits; each hit uses damage_percent from this table."
+    },
+    "level_data": {
+        "1": { "sp_cost": 12, "damage_percent": 100, "total_damage_percent": 200, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 12, "damage_percent": 110, "total_damage_percent": 220, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "3": { "sp_cost": 12, "damage_percent": 120, "total_damage_percent": 240, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "4": { "sp_cost": 12, "damage_percent": 130, "total_damage_percent": 260, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "5": { "sp_cost": 12, "damage_percent": 140, "total_damage_percent": 280, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "6": { "sp_cost": 12, "damage_percent": 150, "total_damage_percent": 300, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "7": { "sp_cost": 12, "damage_percent": 160, "total_damage_percent": 320, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "8": { "sp_cost": 12, "damage_percent": 170, "total_damage_percent": 340, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "9": { "sp_cost": 12, "damage_percent": 180, "total_damage_percent": 360, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
+        "10": { "sp_cost": 12, "damage_percent": 190, "total_damage_percent": 380, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.archer.DoubleStrafeSkillEffect"
+}

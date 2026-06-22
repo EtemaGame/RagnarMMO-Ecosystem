@@ -57,5 +57,5 @@ Before each beta release:
 11. Obtain an item or card.
 12. Refine an item.
 13. Die and relog.
-14. Verify persisted stats, skills, zeny, and critical party state.
+14. Verify persisted stats, skills, and critical party state.
 15. Join a dedicated server.

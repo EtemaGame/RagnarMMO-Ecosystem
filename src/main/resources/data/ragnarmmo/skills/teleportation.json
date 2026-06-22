@@ -1,0 +1,34 @@
+{
+    "id": "ragnarmmo:teleportation",
+    "display_name": "Teleportation",
+    "category": "CLASS_ACTIVE",
+    "tier": "FIRST",
+    "usage": "ACTIVE",
+    "progression": {
+        "max_level": 2,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "costs": {
+        "base_cost": 0,
+        "cost_per_level": 0
+    },
+    "cooldown_ticks": 0,
+    "level_data": {
+        "1": { "sp_cost": 10, "mode": 1, "random_radius": 50, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 9, "mode": 2, "save_point": 1, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 }
+    },
+    "jobs": [
+        "ACOLYTE"
+    ],
+    "requirements": {
+        "ragnarmmo:ruwach": 1
+    },
+    "ui": {
+        "texture": "acolyte/acolyte_teleportation",
+        "grid_x": 4,
+        "grid_y": 0
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.acolyte.TeleportationSkillEffect"
+}

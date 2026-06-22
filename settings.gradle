@@ -12,13 +12,4 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
 }
 
-rootProject.name = 'RagnarMMO-Ecosistema'
-
-include 'ragnarmmo-core'
-include 'ragnarmmo-combat'
-include 'ragnarmmo-jobs'
-include 'ragnarmmo-items'
-include 'ragnarmmo-economy'
-include 'ragnarmmo-lifeskills'
-include 'ragnarmmo-mobs'
-include 'ragnarmmo-social'
+rootProject.name = 'RagnarMMO'

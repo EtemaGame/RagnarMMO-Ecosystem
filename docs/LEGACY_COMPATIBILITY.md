@@ -27,16 +27,16 @@ Registered in `RagnarCommand`:
 These are player-facing command shortcuts. Keep them unless a release note and
 migration path exists.
 
-Current modular coverage:
+Current single-mod coverage:
 
-- `ragnarmmo-jobs` no longer registers direct player-facing job commands.
+- The `jobs` package no longer registers direct player-facing job commands.
 - Job viewing, job change, skill leveling and skill hotbar assignment are handled through UI/packets.
 - Future `/jobs` or debug commands should be purpose-built instead of restoring the old smoke-test commands.
 
 ## Job Change Compatibility
 
 Legacy `PacketChangeJob` behavior is represented server-side by
-`JobChangeService` in `ragnarmmo-jobs`.
+`JobChangeService` in the `jobs` package.
 
 Preserved rules for the current phase:
 

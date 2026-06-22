@@ -1,47 +1,45 @@
 # RagnarMMO Architecture
 
-Este workspace convierte RagnarMMO en una familia de 8 mods Forge. `original-source` es solo referencia de lectura para terminar el port: no es un modulo, no se distribuye y no debe ser dependencia.
+Este workspace empaqueta RagnarMMO como un solo mod Forge (`modId: ragnarmmo`) con subsistemas internos. No hay submods fisicos ni fuente legacy activa.
 
 ## Regla central
 
-- `ragnarmmo-core` es la autoridad server-side comun.
-- Los demas mods se adhieren a `core`.
-- Cada modulo debe funcionar con Minecraft vanilla/base mas `core`.
-- Las integraciones entre mods RagnarMMO son opcionales salvo que se documente lo contrario.
-- El codigo client-side de cada modulo solo muestra datos, caches visuales e input; no decide stats, damage, drops, wallet ni progresion.
-- Todo gameplay debe poder validarse en servidor dedicado sin depender de una carpeta o modulo client separado.
+- `src` es la unica carpeta de codigo, recursos y tests del mod.
+- `core` conserva la autoridad server-side comun.
+- Las fronteras de paquete siguen existiendo para evitar duplicacion y dependencias confusas.
+- El codigo client-side de cada subsistema solo muestra datos, caches visuales e input; no decide stats, damage, drops, wallet ni progresion.
+- Todo gameplay debe poder validarse en servidor dedicado sin depender de una carpeta client separada.
 
-## Modulos
+## Subsistemas
 
-| Modulo | Rol | Dependencia obligatoria |
-| --- | --- | --- |
-| `ragnarmmo-core` | API publica, stats, base/job level, atributos, configs, networking comun, eventos compartidos y resolucion universal de perfiles RO para entidades. | Ninguna |
-| `ragnarmmo-combat` | Combate RO opcional: formulas, targeting, cast/cooldown, status, aggro, damage, hit/flee/crit/ASPD. | `core` |
-| `ragnarmmo-jobs` | Jobs, job trees, job skills, hotbar, requisitos por Job Lv y gasto de puntos. | `core` |
-| `ragnarmmo-items` | Items fisicos, equipo, cards, refinement, recipes y drops no economicos. | `core` |
-| `ragnarmmo-economy` | Wallet/currency, zeny compat, money bag, transacciones, comercio y shops futuros. | `core` |
-| `ragnarmmo-lifeskills` | Mining, woodcutting, excavation, farming, fishing, exploration y progresion propia. | `core` |
-| `ragnarmmo-mobs` | Mobs RO, definitions, spawns, boss/world state, mob profiles y drops. | `core` |
-| `ragnarmmo-social` | Party, achievements, titles, bestiary y progreso visible. | `core` |
+| Paquete interno | Rol |
+| --- | --- |
+| `core` | API publica, stats, base/job level, atributos, configs, networking comun, eventos compartidos y resolucion universal de perfiles RO para entidades. |
+| `combat` | Combate RO: formulas, targeting, cast/cooldown, status, aggro, damage, hit/flee/crit/ASPD. |
+| `jobs` | Jobs, job trees, job skills, hotbar, requisitos por Job Lv y gasto de puntos. |
+| `items` | Items fisicos, equipo, cards, refinement, recipes y drops no economicos. |
+| `lifeskills` | Mining, woodcutting, excavation, farming, fishing, exploration y progresion propia. |
+| `mobs` | Mobs RO, definitions, spawns, boss/world state, mob profiles y drops. |
+| `social` | Party, achievements, titles, bestiary y progreso visible. |
 
-## Integraciones opcionales
+## Fronteras internas
 
-- `jobs` usa `combat` si esta presente para damage/cast/status, y `items` si esta presente para requisitos de arma/equipo. Sin ellos debe usar fallback vanilla.
-- `mobs` usa `combat` para aggro/damage/status, `items` para drops fisicos y `economy` para recompensas wallet. Sin ellos debe spawnear y comportarse con base vanilla.
-- `social` muestra datos de `items`, `mobs`, `jobs` o `economy` solo si existen. Party/titles/achievements deben funcionar con solo `core`.
-- Las pantallas, renderers, tooltips, keybinds y caches client-side viven en el modulo que expone esa funcionalidad, activadas por presencia de modulo.
-- GeckoLib y Jade son compat/render opcionales, no requisitos del ecosistema base.
+- `jobs` puede consumir APIs de `combat` e `items`, pero no debe duplicar formulas ni reglas de equipamiento.
+- `mobs` puede consumir `combat` e `items`, pero no debe poseer stats universales que pertenecen a `core`.
+- `social` muestra datos de otros subsistemas, pero no debe calcular stats, drops, job logic ni wallet.
+- Las pantallas, renderers, tooltips, keybinds y caches client-side viven en el subsistema que expone esa funcionalidad.
+- GeckoLib y Jade siguen siendo compat/render opcionales externos, no requisitos del ecosistema base.
 
 ## Frontera Core/Combat
 
 - `core` es la fuente de verdad de datos base: stats primarios, progresion, recursos, atributos compartidos, configs y derived stats extensibles.
 - `combat` no posee esos datos; los consulta desde `core` y decide como se aplican durante una accion de combate.
 - La cadencia de golpes, ASPD runtime, reemplazo del cooldown vanilla, anulacion de i-frames entre golpes, hit/flee/crit, defensa, reduccion, dual wield y reglas melee/ranged pertenecen a `combat`.
-- Equipos, cards, enchants, buffs y otros modulos deben aportar modificadores mediante atributos o contributors compartidos; `combat` consume el estado final resuelto sin depender de implementaciones internas de esos modulos.
+- Equipos, cards, enchants, buffs y otros subsistemas deben aportar modificadores mediante atributos o contributors compartidos; `combat` consume el estado final resuelto sin depender de sus implementaciones internas.
 
 ## Universal Mob Scaling
 
-El sistema de niveles y perfiles RO para mobs no vive en `ragnarmmo-mobs`. Ese modulo queda reservado para entidades RagnarMMO propias, spawns authored, bosses propios, IA especifica, drops y contenido que complete el mundo. El escalado universal debe vivir en `ragnarmmo-core` porque afecta a mobs vanilla, mobs de futuros mods y mobs de otros mods aunque `ragnarmmo-mobs` no este instalado.
+El sistema de niveles y perfiles RO para mobs no vive en `mobs`. Ese subsistema queda reservado para entidades RagnarMMO propias, spawns authored, bosses propios, IA especifica, drops y contenido que complete el mundo. El escalado universal debe vivir en `core` porque afecta a mobs vanilla, mobs de futuros mods y mobs de otros mods.
 
 Responsabilidades de `core`:
 
@@ -50,7 +48,7 @@ Responsabilidades de `core`:
 - Resolver un `MobProfile` server-side con nivel, raza, elemento, nivel elemental, tamano, rank/boss, stats primarios, stats derivados, recompensas base y flags de comportamiento.
 - Aplicar atributos runtime derivados: HP, attack, defense, magic defense, hit, flee, crit, ASPD/move speed y otros atributos compartidos cuando existan.
 - Leer configs/datapacks universales para reglas por entidad, tag, biome, dimension, estructura/dungeon y boss.
-- Exponer API publica para que `combat`, `social`, `mobs` u otros modulos consulten el perfil sin depender entre si.
+- Exponer API publica para que `combat`, `social`, `mobs` u otros subsistemas consulten el perfil sin depender entre si.
 
 Responsabilidades de `combat`:
 
@@ -87,7 +85,7 @@ Responsabilidades client-side y de `social`:
 - No calcular nivel, stats ni recompensas.
 - `social` puede enriquecer bestiary/achievements con datos de perfil cuando existan.
 
-Responsabilidades de `ragnarmmo-mobs`:
+Responsabilidades de `mobs`:
 
 - Registrar entidades propias y sus definiciones authored.
 - Aportar overrides de perfil a `core` para mobs RagnarMMO propios.
@@ -128,10 +126,10 @@ La vista principal debe componerse a partir de datos, no hardcodear una clase:
 
 Fuentes de datos:
 
-- `ragnarmmo-jobs` registra job skill definitions, skill trees, skill levels, puntos y packets de aplicar/resetear.
-- `ragnarmmo-lifeskills` registra life skills en una pestana separada o una seccion lateral; no se mezclan con Job Skills.
-- El codigo client-side del modulo dueño de cada UI renderiza iconos, grillas, tooltips, estado visual y caches. No decide requisitos, puntos ni aprendizaje.
-- `ragnarmmo-core` define contratos/API comunes para que otros mods puedan aportar skills visibles sin depender de internals de `jobs`.
+- `jobs` registra job skill definitions, skill trees, skill levels, puntos y packets de aplicar/resetear.
+- `lifeskills` registra life skills en una pestana separada o una seccion lateral; no se mezclan con Job Skills.
+- El codigo client-side del subsistema dueño de cada UI renderiza iconos, grillas, tooltips, estado visual y caches. No decide requisitos, puntos ni aprendizaje.
+- `core` define contratos/API comunes para que otros mods puedan aportar skills visibles sin depender de internals de `jobs`.
 
 Iconos y sprites:
 
@@ -145,27 +143,14 @@ Estados visuales esperados:
 - Tooltips deben mostrar descripcion, tipo de skill, nivel actual/maximo, coste SP/recurso, prerequisitos y efecto por nivel cuando exista.
 - El contador inferior debe mostrar puntos usados/limite por seccion, por ejemplo `49 / 49` para primera clase o `61 / 69` para segunda.
 
-## IDs Forge
+## ID Forge
 
-Las carpetas Gradle usan guion y los `modId` usan guion bajo:
+El unico `modId` Forge es `ragnarmmo`. Algunos registros conservan namespace legacy `ragnarmmo` para compatibilidad de datos viejos. No eliminar aliases sin revisar `LEGACY_COMPATIBILITY.md`.
 
-| Carpeta | modId |
-| --- | --- |
-| `ragnarmmo-core` | `ragnarmmo_core` |
-| `ragnarmmo-combat` | `ragnarmmo_combat` |
-| `ragnarmmo-jobs` | `ragnarmmo_jobs` |
-| `ragnarmmo-items` | `ragnarmmo_items` |
-| `ragnarmmo-economy` | `ragnarmmo_economy` |
-| `ragnarmmo-lifeskills` | `ragnarmmo_lifeskills` |
-| `ragnarmmo-mobs` | `ragnarmmo_mobs` |
-| `ragnarmmo-social` | `ragnarmmo_social` |
+## Reglas de evolucion
 
-Algunos registros conservan namespace legacy `ragnarmmo` para compatibilidad de datos viejos. No eliminar esos aliases sin revisar `LEGACY_COMPATIBILITY.md`.
-
-## Reglas de port
-
-- Preservar IDs, comandos y datos criticos durante la primera migracion.
-- No borrar `original-source` hasta que el codigo Java necesario este portado.
-- No agregar dependencias obligatorias entre modulos de gameplay si se puede resolver con API, evento, `ModList`, IMC o adapter opcional.
-- Economy debe seguir reemplazable: otros mods consumen API de `core`, no detalles internos de wallet/zeny.
+- Preservar IDs, comandos y datos criticos salvo migracion documentada.
+- Reescribir funcionalidad faltante sobre la arquitectura actual.
+- No agregar dependencias confusas entre subsistemas de gameplay si se puede resolver con API, evento o adapter interno.
+- Economy queda fuera del codigo activo hasta su reescritura completa.
 - Jobs y Life Skills no se mezclan: Jobs usa Job Lv/puntos; Life Skills usa progresion propia.

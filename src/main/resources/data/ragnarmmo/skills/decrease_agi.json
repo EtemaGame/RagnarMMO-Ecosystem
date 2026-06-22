@@ -1,0 +1,44 @@
+{
+    "id": "ragnarmmo:decrease_agi",
+    "display_name": "Decrease Agility",
+    "category": "CLASS_ACTIVE",
+    "tier": "FIRST",
+    "usage": "ACTIVE",
+    "progression": {
+        "max_level": 10,
+        "upgrade_cost": 1,
+        "can_gain_xp": false,
+        "can_upgrade_with_points": true
+    },
+    "costs": {
+        "base_cost": 0,
+        "cost_per_level": 0
+    },
+    "cooldown_ticks": 0,
+    "cast_delay_ticks": 20,
+    "cast_time_ticks": 20,
+    "jobs": [
+        "ACOLYTE"
+    ],
+    "requirements": {
+        "ragnarmmo:increase_agi": 1
+    },
+    "ui": {
+        "texture": "acolyte/acolyte_decrease_agility",
+        "grid_x": 2,
+        "grid_y": 1
+    },
+    "level_data": {
+        "1": { "sp_cost": 15, "agi_reduction": 3, "duration_ticks": 800, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 17, "agi_reduction": 4, "duration_ticks": 1000, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "3": { "sp_cost": 19, "agi_reduction": 5, "duration_ticks": 1200, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "4": { "sp_cost": 21, "agi_reduction": 6, "duration_ticks": 1400, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "5": { "sp_cost": 23, "agi_reduction": 7, "duration_ticks": 1600, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "6": { "sp_cost": 25, "agi_reduction": 8, "duration_ticks": 1800, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "7": { "sp_cost": 27, "agi_reduction": 9, "duration_ticks": 2000, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "8": { "sp_cost": 29, "agi_reduction": 10, "duration_ticks": 2200, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "9": { "sp_cost": 31, "agi_reduction": 11, "duration_ticks": 2400, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "10": { "sp_cost": 33, "agi_reduction": 12, "duration_ticks": 2600, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 }
+    },
+    "effect_class": "com.etema.ragnarmmo.skills.job.acolyte.DecreaseAgiSkillEffect"
+}

@@ -1,103 +1,52 @@
 plugins {
-    id 'base'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)' apply false
 }
 
-allprojects {
-    group = mod_group_id
-    version = mod_version
+group = mod_group_id
+version = mod_version
 
-    repositories {
-        mavenCentral()
+repositories {
+    mavenCentral()
+}
+
+ext.ragnarmmo_mod_id = mod_id
+ext.ragnarmmo_mod_name = mod_name
+ext.ragnarmmo_mod_description = mod_description
+description = mod_description
+
+apply from: rootProject.file('gradle/ragnarmmo-forge-module.gradle')
+
+minecraft {
+    runs {
+        client {
+            workingDirectory rootProject.file('run/client-full')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                ragnarmmo {
+                    source sourceSets.main
+                }
+            }
+        }
     }
 }
 
-def ecosystemModules = [
-        'ragnarmmo-core',
-        'ragnarmmo-combat',
-        'ragnarmmo-jobs',
-        'ragnarmmo-items',
-        'ragnarmmo-economy',
-        'ragnarmmo-lifeskills',
-        'ragnarmmo-mobs',
-        'ragnarmmo-social',
-]
-
 tasks.register('ecosystemStatus') {
     group = 'ragnarmmo'
-    description = 'Prints the current RagnarMMO ecosystem workspace layout.'
+    description = 'Prints the current RagnarMMO workspace layout.'
     doLast {
-        println 'RagnarMMO-Ecosistema'
-        println ' - original-source: original mod source used only as extraction reference'
-        ecosystemModules.each { moduleName ->
-            println " - ${moduleName}: modular target"
-        }
+        println 'RagnarMMO'
+        println ' - src: Forge mod source, resources and tests'
+        println ' - docs: live project documentation'
+        println ' - gradle: wrapper and shared build templates'
+        println ' - run: local dev runtime directory'
     }
 }
 
 tasks.register('modularBuild') {
     group = 'ragnarmmo'
-    description = 'Builds only the new RagnarMMO modular ecosystem projects.'
-    dependsOn ecosystemModules.collect { ":${it}:build" }
-}
-
-tasks.register('runClient') {
-    group = 'ragnarmmo'
-    description = 'Launches the modular RagnarMMO client dev run from the core project.'
-    dependsOn ecosystemModules.collect { ":${it}:classes" }
-    dependsOn ':ragnarmmo-core:runClient'
-}
-
-tasks.register('portAudit') {
-    group = 'ragnarmmo'
-    description = 'Prints a non-failing audit of original-source content still waiting to be ported.'
-    doLast {
-        def originalJavaRoot = file('original-source/src/main/java/com/etema/ragnarmmo')
-        def originalResourceRoot = file('original-source/src/main/resources')
-        def modularJavaCount = ecosystemModules.sum { moduleName ->
-            fileTree("${moduleName}/src/main/java") {
-                include '**/*.java'
-            }.files.size()
-        }
-        def modularResourceCount = ecosystemModules.sum { moduleName ->
-            fileTree("${moduleName}/src/main/resources") {
-                include '**/*'
-                exclude '**/.gitkeep'
-            }.files.findAll { it.isFile() }.size()
-        }
-
-        println 'RagnarMMO port audit'
-        println " - original Java files: ${fileTree(originalJavaRoot) { include '**/*.java' }.files.size()}"
-        println " - modular Java files: ${modularJavaCount}"
-        println " - original resource files: ${fileTree(originalResourceRoot) { include '**/*' }.files.findAll { it.isFile() }.size()}"
-        println " - modular source resource files: ${modularResourceCount}"
-        println ''
-        println 'Original Java domains still present:'
-        originalJavaRoot.listFiles()
-                ?.findAll { it.isDirectory() }
-                ?.sort { it.name }
-                ?.each { dir ->
-                    def count = fileTree(dir) { include '**/*.java' }.files.size()
-                    println " - ${dir.name}: ${count}"
-                }
-        println ''
-        println 'This task is informational. Use verifyPortComplete when original-source is expected to be empty.'
-    }
-}
-
-tasks.register('verifyPortComplete') {
-    group = 'ragnarmmo'
-    description = 'Fails until original-source no longer contains code or resources that must be ported.'
-    doLast {
-        def remainingJava = fileTree('original-source/src/main/java') {
-            include '**/*.java'
-        }.files.size()
-        def remainingResources = fileTree('original-source/src/main/resources') {
-            include '**/*'
-        }.files.findAll { it.isFile() }.size()
-
-        if (remainingJava > 0 || remainingResources > 0) {
-            throw new GradleException("Port incomplete: original-source still has ${remainingJava} Java files and ${remainingResources} resource files.")
-        }
-    }
+    description = 'Legacy alias that builds the single RagnarMMO Forge mod.'
+    dependsOn tasks.named('build')
 }
