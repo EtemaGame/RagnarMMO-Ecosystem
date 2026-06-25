@@ -33,7 +33,6 @@ public final class RagnarCoreConfigs {
         public final ForgeConfigSpec.DoubleValue jobExpGlobalMultiplier;
         public final ForgeConfigSpec.DoubleValue baseExpDeathPenaltyRate;
         public final ForgeConfigSpec.DoubleValue jobExpDeathPenaltyRate;
-        public final ForgeConfigSpec.IntValue secondJobChangeMinJobLevel;
         public final ForgeConfigSpec.BooleanValue usePreRenewalStatPointCurve;
         public final ForgeConfigSpec.IntValue baseStatPoints;
         public final ForgeConfigSpec.IntValue pointsPerLevel;
@@ -46,7 +45,6 @@ public final class RagnarCoreConfigs {
             jobExpGlobalMultiplier = builder.defineInRange("job_exp_global_multiplier", 1.0, 0.01, 100.0);
             baseExpDeathPenaltyRate = builder.defineInRange("base_exp_death_penalty_rate", 0.05, 0.0, 1.0);
             jobExpDeathPenaltyRate = builder.defineInRange("job_exp_death_penalty_rate", 0.05, 0.0, 1.0);
-            secondJobChangeMinJobLevel = builder.defineInRange("second_job_change_min_job_level", 40, 1, 50);
             usePreRenewalStatPointCurve = builder.define("use_pre_renewal_stat_point_curve", true);
             skillToBaseExpMultiplier = builder.defineInRange("skill_to_base_exp_multiplier", 0.5, 0.0, 10.0);
             skillToJobExpMultiplier = builder.defineInRange("skill_to_job_exp_multiplier", 0.5, 0.0, 10.0);

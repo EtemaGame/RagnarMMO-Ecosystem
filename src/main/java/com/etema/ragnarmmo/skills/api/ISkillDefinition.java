@@ -34,6 +34,10 @@ public interface ISkillDefinition {
 
     Map<Integer, Map<String, Double>> getLevelDataMap();
 
+    default Map<Integer, Map<String, String>> getLevelStringDataMap() {
+        return Map.of();
+    }
+
     Set<com.etema.ragnarmmo.common.api.jobs.JobType> getJobs();
 
     default boolean isActive() {
@@ -51,6 +55,21 @@ public interface ISkillDefinition {
             return fallback;
         }
         Map<String, Double> values = levels.get(level);
+        if (values == null) {
+            values = levels.get(Math.max(1, Math.min(getMaxLevel(), level)));
+        }
+        if (values == null) {
+            return fallback;
+        }
+        return values.getOrDefault(key, fallback);
+    }
+
+    default String getLevelString(String key, int level, String fallback) {
+        Map<Integer, Map<String, String>> levels = getLevelStringDataMap();
+        if (levels == null || levels.isEmpty()) {
+            return fallback;
+        }
+        Map<String, String> values = levels.get(level);
         if (values == null) {
             values = levels.get(Math.max(1, Math.min(getMaxLevel(), level)));
         }

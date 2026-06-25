@@ -1,13 +1,16 @@
 package com.etema.ragnarmmo.combat.contract;
 
 import com.etema.ragnarmmo.common.api.RagnarCoreAPI;
+import com.etema.ragnarmmo.common.api.mobs.runtime.MobProfileBootstrap;
 import com.etema.ragnarmmo.common.api.compute.DerivedStats;
 import com.etema.ragnarmmo.common.api.stats.IPlayerStats;
+import com.etema.ragnarmmo.common.api.stats.RoBaseStats;
 import com.etema.ragnarmmo.common.api.stats.StatAttributes;
 import com.etema.ragnarmmo.common.api.stats.StatKeys;
 import com.etema.ragnarmmo.combat.element.CombatPropertyResolver;
 import com.etema.ragnarmmo.combat.formula.AcolyteSkillFormulaService;
 import com.etema.ragnarmmo.combat.formula.ArcherSkillFormulaService;
+import com.etema.ragnarmmo.combat.formula.FleeMobbingPenaltyService;
 import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import com.etema.ragnarmmo.combat.profile.HandAttackProfile;
 import com.etema.ragnarmmo.core.api.stats.DerivedStatsService;
@@ -44,8 +47,11 @@ public final class CombatantProfileResolver {
         int level = Math.max(1, stats.getLevel());
         double critShield = Math.floor(luk / 5.0D);
         PhysicalAttackProfile physical = handProfile != null
-                ? new PhysicalAttackProfile(handProfile.physicalAttack(), handProfile.physicalAttack(), handProfile.accuracy(),
-                handProfile.critChance(), handProfile.critDamageMultiplier(), handProfile.aspdRo(), handProfile.weapon())
+                ? new PhysicalAttackProfile(handProfile.physicalAttack(), handProfile.physicalAttack(),
+                handProfile.accuracy() * RoCombatStatusService.hitMultiplier(player),
+                handProfile.critChance(), handProfile.critDamageMultiplier(), handProfile.aspdRo(), handProfile.weapon(),
+                handProfile.statusAttack(), handProfile.weaponAttack(), handProfile.arrowAttack(),
+                handProfile.weaponLevel(), handProfile.ranged(), true)
                 : new PhysicalAttackProfile(Math.max(0.0D, derived.physicalAttackMin), Math.max(0.0D, derived.physicalAttackMax),
                 derived.accuracy, derived.criticalChance, derived.criticalDamageMultiplier,
                 (int) Math.round(derived.attackSpeed), ItemStack.EMPTY);
@@ -55,10 +61,12 @@ public final class CombatantProfileResolver {
                 new CombatStats(str, agi, vit, intel, dex, luk, level),
                 physical,
                 new MagicAttackProfile(derived.magicAttackMin, derived.magicAttackMax),
-                new DefenseProfile(derived.flee, derived.perfectDodge, critShield, vit, agi, intel, luk, level,
+                new DefenseProfile(FleeMobbingPenaltyService.applyMonsterMobbingPenalty(player, derived.flee),
+                        derived.perfectDodge, critShield, vit, agi, intel, luk, level,
                         derived.hardDefense, derived.hardMagicDefense),
                 new CombatModifiers("demihuman", CombatPropertyResolver.getDefensiveElement(player),
-                        CombatPropertyResolver.getEntitySize(player)),
+                        CombatPropertyResolver.getEntitySize(player),
+                        CombatPropertyResolver.getDefensiveElementLevel(player)),
                 false));
     }
 
@@ -66,24 +74,38 @@ public final class CombatantProfileResolver {
         if (mob == null) {
             return Optional.empty();
         }
-        int level = Math.max(1, (int) Math.round(mob.getMaxHealth() / 10.0D));
-        int vit = 1;
-        int agi = Math.max(1, 1 - RoCombatStatusService.agiPenalty(mob));
-        int intel = 1;
-        int dex = 1;
-        int luk = 1;
-        double flee = Math.max(0.0D,
-                mob.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED) * 100.0D
-                        - RoCombatStatusService.agiPenalty(mob));
+        var profileOpt = MobProfileBootstrap.ensureInitialized(mob);
+        int level = profileOpt.map(profile -> profile.level())
+                .orElseGet(() -> Math.max(1, (int) Math.round(mob.getMaxHealth() / 10.0D)));
+        RoBaseStats baseStats = profileOpt.map(profile -> profile.baseStats()).orElseGet(RoBaseStats::novice);
+        int vit = baseStats.vit();
+        int agi = Math.max(1, baseStats.agi() - RoCombatStatusService.agiPenalty(mob));
+        int intel = baseStats.intel();
+        int dex = baseStats.dex();
+        int luk = baseStats.luk();
+        double hit = profileOpt.map(profile -> (double) profile.hit()).orElse(1.0D);
+        double flee = profileOpt.map(profile -> (double) profile.flee()).orElseGet(() ->
+                mob.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED) * 100.0D);
+        double hardDef = profileOpt.map(profile -> (double) profile.def()).orElse((double) mob.getArmorValue());
+        double hardMdef = profileOpt.map(profile -> (double) profile.mdef()).orElse(0.0D);
+        double minAtk = profileOpt.map(profile -> (double) profile.atkMin()).orElse(1.0D);
+        double maxAtk = profileOpt.map(profile -> (double) profile.atkMax()).orElse(1.0D);
+        double minMatk = profileOpt.map(profile -> (double) profile.matkMin()).orElse(1.0D);
+        double maxMatk = profileOpt.map(profile -> (double) profile.matkMax()).orElse(1.0D);
+        double critChance = profileOpt.map(profile -> profile.crit() / 100.0D).orElse(0.0D);
+        int aspd = profileOpt.map(profile -> profile.aspd()).orElse(156);
         return Optional.of(new CombatantProfile(
                 mob,
                 CombatantKind.MOB,
-                new CombatStats(1, agi, vit, intel, dex, luk, level),
-                new PhysicalAttackProfile(1.0D, 1.0D, 1.0D, 0.0D, 1.4D, 156, ItemStack.EMPTY),
-                new MagicAttackProfile(1.0D, 1.0D),
-                new DefenseProfile(flee, 0.0D, 0.0D, vit, agi, intel, luk, level, mob.getArmorValue(), 0.0D),
-                new CombatModifiers("unknown", CombatPropertyResolver.getDefensiveElement(mob),
-                        CombatPropertyResolver.getEntitySize(mob)),
+                new CombatStats(baseStats.str(), agi, vit, intel, dex, luk, level),
+                new PhysicalAttackProfile(minAtk, maxAtk, hit * RoCombatStatusService.hitMultiplier(mob),
+                        critChance, 1.4D, aspd, ItemStack.EMPTY),
+                new MagicAttackProfile(minMatk, maxMatk),
+                new DefenseProfile(Math.max(0.0D, flee - RoCombatStatusService.agiPenalty(mob)) * RoCombatStatusService.fleeMultiplier(mob),
+                        0.0D, Math.floor(luk / 5.0D), vit, agi, intel, luk, level, hardDef, hardMdef),
+                new CombatModifiers(CombatPropertyResolver.getRace(mob), CombatPropertyResolver.getDefensiveElement(mob),
+                        CombatPropertyResolver.getEntitySize(mob),
+                        CombatPropertyResolver.getDefensiveElementLevel(mob)),
                 false));
     }
 

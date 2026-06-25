@@ -19,5 +19,6 @@ public record MobTemplate(
         @Nullable String race,
         @Nullable String element,
         @Nullable Integer elementLevel,
-        @Nullable String size) {
+        @Nullable String size,
+        @Nullable Integer attackRange) {
 }

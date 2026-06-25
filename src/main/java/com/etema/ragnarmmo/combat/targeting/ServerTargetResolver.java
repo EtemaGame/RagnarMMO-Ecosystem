@@ -3,6 +3,7 @@ package com.etema.ragnarmmo.combat.targeting;
 import com.etema.ragnarmmo.combat.api.RagnarTargetCandidate;
 import com.etema.ragnarmmo.combat.api.ResolvedTargetCandidate;
 import com.etema.ragnarmmo.combat.api.TargetRejectReason;
+import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,13 +17,20 @@ public final class ServerTargetResolver {
     }
 
     public static List<ResolvedTargetCandidate> resolve(ServerPlayer attacker, List<RagnarTargetCandidate> candidates) {
+        return resolve(attacker, candidates, BASIC_ATTACK_RANGE);
+    }
+
+    public static List<ResolvedTargetCandidate> resolve(ServerPlayer attacker, List<RagnarTargetCandidate> candidates,
+            double maxRange) {
         if (attacker == null || candidates == null || candidates.isEmpty()) {
             return List.of();
         }
-        return candidates.stream().map(candidate -> resolveOne(attacker, candidate)).toList();
+        double safeRange = Math.max(0.0D, maxRange);
+        return candidates.stream().map(candidate -> resolveOne(attacker, candidate, safeRange)).toList();
     }
 
-    private static ResolvedTargetCandidate resolveOne(ServerPlayer attacker, RagnarTargetCandidate candidate) {
+    private static ResolvedTargetCandidate resolveOne(ServerPlayer attacker, RagnarTargetCandidate candidate,
+            double maxRange) {
         if (candidate == null) {
             return ResolvedTargetCandidate.rejected(-1, TargetRejectReason.TARGET_NOT_FOUND, 0.0D);
         }
@@ -43,7 +51,10 @@ public final class ServerTargetResolver {
         if (!living.isAlive()) {
             return ResolvedTargetCandidate.rejected(candidate.entityId(), TargetRejectReason.TARGET_DEAD, distance);
         }
-        if (distance > BASIC_ATTACK_RANGE) {
+        if (RoCombatStatusService.hasHiding(living) && !RoCombatStatusService.canDetectHiding(attacker)) {
+            return ResolvedTargetCandidate.rejected(candidate.entityId(), TargetRejectReason.TARGET_HIDDEN, distance);
+        }
+        if (distance > maxRange) {
             return ResolvedTargetCandidate.rejected(candidate.entityId(), TargetRejectReason.TARGET_OUT_OF_RANGE, distance);
         }
         if (living.isInvulnerable()) {

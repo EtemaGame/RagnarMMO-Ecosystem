@@ -24,7 +24,8 @@ public record MobProfile(
         String race,
         String element,
         int elementLevel,
-        String size) {
+        String size,
+        int attackRange) {
     public MobProfile {
         if (level < 1) throw new IllegalArgumentException("level must be >= 1");
         if (rank == null) throw new IllegalArgumentException("rank must not be null");
@@ -44,6 +45,7 @@ public record MobProfile(
         element = token(element, "neutral");
         elementLevel = Math.max(1, Math.min(4, elementLevel));
         size = token(size, "medium");
+        attackRange = Math.max(0, attackRange);
     }
 
     private static String token(String value, String fallback) {

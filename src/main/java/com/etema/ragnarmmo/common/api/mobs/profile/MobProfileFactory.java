@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public final class MobProfileFactory {
     private static final Defaults DEFAULTS = new Defaults(20, 2, 5, 0, 0, 5, 2, 10, 5, 1, 150, 0.23D,
-            "brute", "neutral", 1, "medium");
+            "brute", "neutral", 1, "medium", 2);
 
     public MobProfile create(int level, MobRank rank, Optional<ResolvedMobDefinition> definition) {
         ResolvedMobDefinition authored = definition.orElse(null);
@@ -72,7 +72,8 @@ public final class MobProfileFactory {
                 stringOr(authored == null ? null : authored.race(), DEFAULTS.race()),
                 stringOr(authored == null ? null : authored.element(), DEFAULTS.element()),
                 elementLevelOr(authored == null ? null : authored.elementLevel(), DEFAULTS.elementLevel()),
-                stringOr(authored == null ? null : authored.size(), DEFAULTS.size()));
+                stringOr(authored == null ? null : authored.size(), DEFAULTS.size()),
+                nonNegativeOr(authored == null ? null : authored.attackRange(), DEFAULTS.attackRange()));
     }
 
     private static RoBaseStats resolveBaseStats(ResolvedMobDefinition authored, int level, MobRank rank) {
@@ -131,6 +132,10 @@ public final class MobProfileFactory {
         return Math.max(1, Math.min(4, value == null ? fallback : value));
     }
 
+    private static int nonNegativeOr(Integer value, int fallback) {
+        return Math.max(0, value == null ? fallback : value);
+    }
+
     private enum ScaledStat {
         HP,
         ATK,
@@ -164,6 +169,6 @@ public final class MobProfileFactory {
 
     private record Defaults(int maxHp, int atkMin, int atkMax, int matkMin, int matkMax, int def, int mdef,
             int hit, int flee, int crit, int aspd, double moveSpeed, String race, String element, int elementLevel,
-            String size) {
+            String size, int attackRange) {
     }
 }

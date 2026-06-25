@@ -1,35 +1,39 @@
 # Vanilla Effects Policy
 
-Estado al 2026-06-22. Este documento define como tratar efectos vanilla de Minecraft dentro de RagnarMMO para evitar incongruencias con stats, combate y skills estilo Ragnarok Online.
+Estado al 2026-06-25. Este documento define como tratar efectos vanilla de Minecraft dentro de RagnarMMO para evitar incongruencias con stats, combate y skills estilo Ragnarok Online. Las reglas activas de runtime se resumen en `RO_RUNTIME_RULES.md`.
 
 ## Decision
 
-No se eliminan todos los efectos vanilla de golpe.
+Los efectos vanilla no quedan activos como fuente mecanica ni como feedback de skills RO.
 
-Se usan como puente de compatibilidad cuando Minecraft u otros mods los aplican, pero la logica principal de RagnarMMO debe vivir en estados propios o formulas propias.
+Si Minecraft u otro mod aplica un efecto vanilla, RagnarMMO lo procesa como entrada de compatibilidad:
+
+1. Si existe equivalencia util, se convierte a estado RO propio.
+2. Luego se remueve el efecto vanilla para evitar doble formula, doble dano o feedback contradictorio.
+3. Si no existe equivalencia util, se remueve.
 
 Regla:
 
-- Efecto visual/feedback: permitido si no altera formulas centrales.
 - Efecto vanilla con impacto mecanico: debe traducirse a una semantica RagnarMMO.
-- Skill RO nueva: no debe depender de un `MobEffects` vanilla como su formula real.
+- Efecto vanilla sin equivalencia RO: debe eliminarse del runtime.
+- Skill RO nueva: no debe aplicar ni depender de `MobEffects` vanilla.
 
 ## Categorias
 
-### Compatibilidad aceptada
+### Conversion activa
 
-Estos efectos pueden existir porque Minecraft los usa de forma natural o porque otros sistemas los pueden aplicar:
+Estos efectos pueden entrar desde Minecraft u otros mods, pero no deben quedar activos:
 
-- `POISON`
-- `WITHER`
-- `BLINDNESS`
-- `CONFUSION`
-- `INVISIBILITY`
-- `GLOWING`
-- `MOVEMENT_SLOWDOWN`
-- `MOVEMENT_SPEED`
-
-Pero no deben ser la fuente final de verdad si afectan formulas RO.
+| Vanilla | Tratamiento RagnarMMO |
+| --- | --- |
+| `POISON` | Poison RO y remover vanilla |
+| `WITHER` | Poison RO y remover vanilla |
+| `BLINDNESS` | Blind RO y remover vanilla |
+| `CONFUSION` | Chaos RO y remover vanilla |
+| `INVISIBILITY` | Hiding RO y remover vanilla |
+| `MOVEMENT_SPEED` | Increase AGI RO de compatibilidad y remover vanilla |
+| `MOVEMENT_SLOWDOWN` | Decrease AGI RO de compatibilidad y remover vanilla |
+| `GLOWING` | remover; reveal se maneja por estado RO |
 
 ### Logica RO propia
 
@@ -45,10 +49,12 @@ Estos casos deben manejarse con tags/servicios propios, como `RoCombatStatusServ
 - Signum Crucis.
 - Increase/Decrease AGI.
 - Magnum Break fire bonus.
+- Silence.
+- Poison.
 
-### Efectos vanilla peligrosos
+### Efectos vanilla eliminados
 
-Estos efectos no deben usarse como formula principal de skills RO:
+Estos efectos no tienen equivalencia activa cerrada y se remueven si aparecen:
 
 - `DAMAGE_RESISTANCE`
 - `DAMAGE_BOOST`
@@ -58,7 +64,7 @@ Estos efectos no deben usarse como formula principal de skills RO:
 - `ABSORPTION`
 - `FIRE_RESISTANCE`
 
-Si aparecen, deben ser migrados a un estado RO o quedar solo como feedback temporal documentado.
+Cualquier otro efecto con namespace `minecraft:*` tambien se remueve si no fue convertido antes. Si despues se decide que alguno representa una mecanica RO real, debe agregarse como estado/atributo RagnarMMO propio antes de permitirlo.
 
 ## Cure / Detoxify
 
@@ -67,34 +73,33 @@ Pre-Renewal estricto:
 - Cure remueve Blind, Chaos/Confusion y Silence.
 - Detoxify remueve Poison.
 
-Decision practica actual:
-
-- Mientras `POISON` y `WITHER` sean los equivalentes vanilla usados para veneno/dano degenerativo, Cure tambien los limpia para evitar incongruencias jugables.
-- Cuando exista un sistema propio de estados RO, Poison deberia moverse a Detoxify y Cure volver a limpiar solo su grupo RO.
-
 Estado actual:
 
-- Cure limpia `POISON`, `WITHER`, `BLINDNESS` y `CONFUSION`.
-- Silence y Chaos propios quedan pendientes.
+- Cure limpia Blind RO, Chaos RO y Silence RO propio. Tambien remueve `BLINDNESS`/`CONFUSION` si un efecto externo acaba de entrar antes del puente.
+- Detoxify limpia Poison RO y, como puente, `POISON`/`WITHER` vanilla.
+- Chaos RO propio existe y aplica movimiento/targeting caotico basico.
+- Un caster silenciado no puede autocastear Cure.
 
 ## Ruwach / Hiding
 
 Estado actual:
 
-- `INVISIBILITY` se usa como equivalente temporal de Hiding/Cloaking.
-- Ruwach remueve `INVISIBILITY`, aplica `GLOWING` como feedback y dispara dano Holy cuando revela.
+- Hiding tiene estado RO propio.
+- Hiding ya no depende de `INVISIBILITY`.
+- `INVISIBILITY` externo se convierte a Hiding RO y luego se remueve.
+- Ruwach y Sight revelan Hiding RO. Ruwach dispara dano Holy cuando revela.
 
 Pendiente:
 
-- Crear estado propio de Hiding/Cloaking.
-- Ruwach debe depender de ese estado propio, no de invisibilidad vanilla.
+- Cloaking futuro debe usar estado propio equivalente, no `INVISIBILITY`.
 
 ## Velocidad
 
 Estado actual:
 
 - Increase AGI y Decrease AGI ya tienen estado RO propio para AGI.
-- Se aplica `MOVEMENT_SPEED` o `MOVEMENT_SLOWDOWN` solo como puente visible de movimiento.
+- `MOVEMENT_SPEED` externo se convierte a Increase AGI RO de compatibilidad y se remueve.
+- `MOVEMENT_SLOWDOWN` externo se convierte a Decrease AGI RO de compatibilidad y se remueve.
 
 Pendiente:
 
@@ -108,13 +113,11 @@ Problema:
 
 Decision:
 
-- A corto plazo se aceptan como compatibilidad.
-- A medio plazo deben interceptarse y convertirse a tick damage RO, con formula propia, elemento/propiedad si corresponde, y reglas de reduccion definidas.
+- Se convierten a Poison RO y luego se remueven para evitar doble dano.
+- Poison RO usa tick damage propio: 3% MaxHP cada 3s, sin bajar de 25% MaxHP.
 
 ## Trabajo pendiente
 
-- Crear `RoStatusType` o equivalente para estados RO canonicos.
-- Crear puente vanilla -> RO para efectos comunes.
-- Decidir por skill si aplica estado RO, feedback visual o ambos.
-- Interceptar dano de `POISON`/`WITHER` si queremos que pase por formulas propias.
-- Revisar todas las skills que todavia usan `DAMAGE_RESISTANCE`, `WEAKNESS`, `MOVEMENT_SLOWDOWN`, `INVISIBILITY` o `GLOWING`.
+- Crear `RoStatusType` o equivalente para estados RO canonicos si el set de estados sigue creciendo.
+- Completar equivalencias futuras para estados RO que aun no existen: Curse, Sleep, Stun, Bleeding y variantes de slow/curse.
+- Revisar efectos de otros mods cuando aparezcan y mapearlos a estados RO o removerlos.

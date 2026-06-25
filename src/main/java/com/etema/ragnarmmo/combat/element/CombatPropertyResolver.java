@@ -2,6 +2,7 @@ package com.etema.ragnarmmo.combat.element;
 
 import com.etema.ragnarmmo.common.api.mobs.capability.MobProfileProvider;
 import com.etema.ragnarmmo.common.api.mobs.capability.MobProfileState;
+import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import com.etema.ragnarmmo.player.stats.compute.CombatMath;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,6 +21,12 @@ public final class CombatPropertyResolver {
     }
 
     public static ElementProperty getDefensiveElementProperty(LivingEntity entity) {
+        if (RoCombatStatusService.hasFrozen(entity)) {
+            return new ElementProperty(ElementType.WATER, 1);
+        }
+        if (RoCombatStatusService.hasStoneCurse(entity)) {
+            return new ElementProperty(ElementType.EARTH, 1);
+        }
         return MobProfileProvider.get(entity).resolve()
                 .filter(MobProfileState::isInitialized)
                 .map(state -> new ElementProperty(parseElement(state.profile().element()), state.profile().elementLevel()))
@@ -52,11 +59,11 @@ public final class CombatPropertyResolver {
         if (profiled.isPresent()) {
             return profiled.get();
         }
-        float width = entity.getBbWidth();
-        if (width < 0.7F) {
+        double maxHitboxAxis = Math.max(entity.getBbWidth(), entity.getBbHeight());
+        if (maxHitboxAxis <= 1.0D) {
             return CombatMath.MobSize.SMALL;
         }
-        if (width > 1.2F) {
+        if (maxHitboxAxis > 3.0D) {
             return CombatMath.MobSize.LARGE;
         }
         return CombatMath.MobSize.MEDIUM;

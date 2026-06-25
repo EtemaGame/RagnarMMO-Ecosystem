@@ -20,7 +20,7 @@
         "grid_y": 0
     },
     "reference": {
-        "notes": "Improve Dodge: RO_EXACT FLEE bonus. Movement bonus is reserved for future second-job tuning."
+        "notes": "Improve Dodge: RO_EXACT FLEE bonus. Movement bonus is not part of the current first-class scope."
     },
     "level_data": {
         "1": { "flee_bonus": 3 },

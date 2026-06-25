@@ -84,6 +84,13 @@ public final class PlayerJobSkills implements IPlayerSkills {
         dirty = true;
     }
 
+    public void resetAll() {
+        levels.clear();
+        Arrays.fill(hotbar, null);
+        cooldowns.clear();
+        dirty = true;
+    }
+
     @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();

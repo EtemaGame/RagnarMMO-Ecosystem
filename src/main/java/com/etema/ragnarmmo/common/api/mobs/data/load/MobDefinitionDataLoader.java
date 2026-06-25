@@ -50,7 +50,7 @@ public final class MobDefinitionDataLoader extends SimpleJsonResourceReloadListe
     private static final String TEMPLATES_FOLDER = "mob_templates";
 
     private static final Set<String> TEMPLATE_FIELDS = Set.of(
-            "rank", "level", "base_exp", "job_exp", "ro_stats", "direct_stats", "race", "element", "element_level", "size");
+            "rank", "level", "base_exp", "job_exp", "ro_stats", "direct_stats", "race", "element", "element_level", "size", "attack_range");
     private static final Set<String> RO_STATS_FIELDS = Set.of("str", "agi", "vit", "int", "dex", "luk");
     private static final Set<String> DIRECT_STATS_FIELDS = Set.of(
             "max_hp", "atk_min", "atk_max", "matk_min", "matk_max", "def", "mdef", "hit", "flee", "crit", "aspd", "move_speed");
@@ -227,7 +227,8 @@ public final class MobDefinitionDataLoader extends SimpleJsonResourceReloadListe
                 parseOptionalString(sourceId, json, "race"),
                 parseOptionalString(sourceId, json, "element"),
                 parseOptionalInteger(sourceId, json, "element_level"),
-                parseOptionalString(sourceId, json, "size"));
+                parseOptionalString(sourceId, json, "size"),
+                parseOptionalInteger(sourceId, json, "attack_range"));
     }
 
     private static MobDefinition parseDefinition(ResourceLocation sourceId, JsonObject json) {

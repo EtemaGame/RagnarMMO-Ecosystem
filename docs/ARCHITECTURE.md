@@ -65,7 +65,7 @@ Contrato de raza, elemento y tamano en perfiles de mobs:
 - Elementos aceptados por combate: `neutral`, `water`, `earth`, `fire`, `wind`, `poison`, `holy`, `dark`/`shadow`, `ghost`, `undead`.
 - Razas recomendadas RO: `formless`, `undead`, `brute`, `plant`, `insect`, `fish`, `demon`, `demihuman`, `angel`, `dragon`. Por ahora se guardan como string normalizado para permitir compat con mods externos.
 - Tamanos aceptados: `small`, `medium`, `large`.
-- Fallback procedural actual para mobs sin definicion: `race=brute`, `element=neutral`, `element_level=1`, `size=medium`.
+- Fallback procedural actual para mobs sin definicion: `race=brute`, `element=neutral`, `element_level=1`; el size se toma del perfil si existe y, si no hay perfil inicializado, se infiere por hitbox.
 - La tabla elemental base de `combat` es pre-renewal: el ataque no tiene nivel elemental; solo el defensor tiene nivel 1-4. La tabla puede devolver multiplicadores negativos, igual que RO.
 
 Contrato inicial de modifiers consumidos por `combat`:
@@ -74,6 +74,9 @@ Contrato inicial de modifiers consumidos por `combat`:
 - `ragnarmmo:damage_race_<race>`; ejemplo `ragnarmmo:damage_race_undead`
 - `ragnarmmo:damage_element_<element>`; ejemplo `ragnarmmo:damage_element_fire`
 - `ragnarmmo:damage_size_<small|medium|large>`
+- `ragnarmmo:resist_all`
+- `ragnarmmo:resist_race_<race>`; ejemplo `ragnarmmo:resist_race_undead`
+- `ragnarmmo:resist_size_<small|medium|large>`
 - `ragnarmmo:resist_element_<element>`; ejemplo `ragnarmmo:resist_element_fire`
 - `ragnarmmo:resist_all_elements`
 
@@ -117,11 +120,9 @@ La pantalla de skills debe conservar la forma mental de Ragnarok Online: arbol e
 La vista principal debe componerse a partir de datos, no hardcodear una clase:
 
 - Seccion superior: arbol basico del personaje. Siempre incluye `novice_1` y la primera clase actual o seleccionada: `swordsman_1`, `archer_1`, `acolyte_1`, `thief_1`, `mage_1`, `merchant_1`, etc.
-- Seccion inferior: segunda clase disponible o actual, por ejemplo `blacksmith_2` para Merchant. En RO el nombre correcto para esta rama es Blacksmith; Whitesmith queda para una evolucion futura/transcendent si se agrega.
 - Cada seccion usa el `grid.width`, `grid.height` y posiciones `x/y` de `data/ragnarmmo/skill_trees`.
-- Si un arbol declara `inherit`, la UI puede mostrar la primera clase como contexto, pero no debe duplicar puntos ni perder la separacion visual superior/inferior.
-- El selector de clase debe permitir ver promociones disponibles aunque aun no se cumplan requisitos, marcandolas bloqueadas.
-- El change class debe consultar reglas server-side de `jobs`: Job Lv minimo, clase actual, prerequisitos y promociones.
+- El selector de clase debe limitarse a Novice y primeras clases.
+- El change class debe consultar reglas server-side de `jobs`: Job Lv minimo, clase actual y prerequisitos.
 - La UI debe soportar futuras clases sin cambio de codigo: si aparece un nuevo `skill_tree` por datapack/mod y cumple el contrato, debe poder mostrarse.
 
 Fuentes de datos:
@@ -141,7 +142,7 @@ Estados visuales esperados:
 
 - Aprendida, disponible para subir, bloqueada por prerequisito, bloqueada por job/class, maxeada, pendiente de aplicar y pendiente de reset.
 - Tooltips deben mostrar descripcion, tipo de skill, nivel actual/maximo, coste SP/recurso, prerequisitos y efecto por nivel cuando exista.
-- El contador inferior debe mostrar puntos usados/limite por seccion, por ejemplo `49 / 49` para primera clase o `61 / 69` para segunda.
+- El contador inferior debe mostrar puntos usados/limite por seccion, por ejemplo `49 / 49` para primera clase.
 
 ## ID Forge
 

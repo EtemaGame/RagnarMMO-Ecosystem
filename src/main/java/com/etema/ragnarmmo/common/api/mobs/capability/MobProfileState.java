@@ -56,6 +56,7 @@ public final class MobProfileState {
         tag.putString("Element", profile.element());
         tag.putInt("ElementLevel", profile.elementLevel());
         tag.putString("Size", profile.size());
+        tag.putInt("AttackRange", profile.attackRange());
         return tag;
     }
 
@@ -85,7 +86,8 @@ public final class MobProfileState {
                 token(nbt.getString("Race"), "unknown"),
                 token(nbt.getString("Element"), "neutral"),
                 clampElementLevel(nbt.contains("ElementLevel") ? nbt.getInt("ElementLevel") : 1),
-                token(nbt.getString("Size"), "medium"));
+                token(nbt.getString("Size"), "medium"),
+                Math.max(0, nbt.contains("AttackRange") ? nbt.getInt("AttackRange") : 2));
     }
 
     private static RoBaseStats readBaseStats(CompoundTag nbt) {
@@ -116,6 +118,6 @@ public final class MobProfileState {
 
     public static MobProfile defaultProfile() {
         return new MobProfile(1, MobRank.NORMAL, RoBaseStats.novice(), 20, 2, 4, 0, 0,
-                0, 0, 10, 5, 1, 150, 0.2D, 1, 1, "unknown", "neutral", 1, "medium");
+                0, 0, 10, 5, 1, 150, 0.2D, 1, 1, "unknown", "neutral", 1, "medium", 2);
     }
 }

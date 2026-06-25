@@ -6,7 +6,7 @@
     "trigger_id": "minecraft:iron_ingot",
     "required_amount": 64,
     "points": 15,
-    "title": "title.ragnarmmo.the_blacksmith",
+    "title": "title.ragnarmmo.the_miner",
     "rewards": {
         "minecraft:iron_block": 1
     }

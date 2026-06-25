@@ -20,14 +20,7 @@ public enum JobType {
     ARCHER("Archer"),
     THIEF("Thief"),
     MERCHANT("Merchant"),
-    ACOLYTE("Acolyte"),
-
-    WIZARD("Wizard"),
-    PRIEST("Priest"),
-    KNIGHT("Knight"),
-    HUNTER("Hunter"),
-    ASSASSIN("Assassin"),
-    BLACKSMITH("Blacksmith");
+    ACOLYTE("Acolyte");
 
     private final String displayName;
     private final Map<ResourceLocation, Double> xpMultipliers;
@@ -201,7 +194,7 @@ public enum JobType {
 
     /**
      * Returns the tier of this job in the class hierarchy.
-     * 0 = Novice, 1 = first class, 2 = legacy advanced class.
+     * 0 = Novice, 1 = first class.
      */
     public int getTier() {
         return switch (this) {
@@ -213,7 +206,7 @@ public enum JobType {
 
     /**
      * Returns the prerequisite (parent) job needed to reach this class.
-     * Returns null for NOVICE and unsupported legacy classes.
+     * Returns null for NOVICE.
      */
     public JobType getParent() {
         return switch (this) {

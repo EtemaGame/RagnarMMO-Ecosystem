@@ -1,353 +1,296 @@
-# Analisis de brechas del combate
+# Combat Gap Analysis
 
-Fuente de verdad actual: `docs/combat.md`.
+Fuente principal: `docs/combat.md`.
 
-Estado del analisis: verificado contra el codigo actual. No se asume comportamiento que no exista en el codigo.
+Estado: verificado contra el codigo actual al 2026-06-24. Este archivo registra brechas reales y reglas fijadas. Si el codigo ya fue corregido, no se mantiene como conflicto.
 
 Leyenda:
 
 - `OK`: coincide de forma util con el documento.
-- `PARCIAL`: existe una base, pero falta parte de la regla.
-- `CONFLICTO`: el codigo hace algo distinto a lo que indica el documento.
-- `NO`: no esta implementado como sistema real.
+- `PARCIAL`: existe base funcional, pero falta precision o integracion.
+- `NO`: no existe como sistema real.
+- `BLOQUEADO`: depende de items, equipment, UI, economy u otro sistema externo.
+
+## Reglas fijadas
+
+### Criticos
+
+- El critico puede conectar aunque el HIT normal fallaria.
+- Perfect Dodge se evalua antes del dano y puede evitar el ataque.
+- Crit Shield reduce la chance critica efectiva.
+- El critico ignora Hard DEF y Soft DEF.
+- Multiplicador base de critico: `1.4`.
+
+### Nivel del player
+
+- El combate ya no usa `player.experienceLevel`.
+- Para players se usa `IPlayerStats.getLevel()`.
+
+### Elemento y tamano
+
+- `RagnarDamageCalculator.applyModifiers` aplica elemento siempre.
+- Para dano fisico, tambien aplica penalidad de tamano del arma.
+- Para dano magico, no aplica penalidad de tamano del arma.
+
+### Orden de dano fisico
+
+1. Resolver hit: Perfect Dodge, Critical, HIT/FLEE si no fue critico.
+2. Construir ataque por golpe: StatusATK, WeaponATK, Size modifier solo sobre WeaponATK, modificadores activos como Over Thrust o Provoke ofensivo.
+3. Aplicar defensa por golpe: Hard DEF porcentual, Soft DEF. Critical ignora Hard DEF y Soft DEF. Componentes que ignoran DEF se suman despues.
+4. Sumar bonuses planos tardios: Weapon Mastery, Demon Bane, flat damage bonus de skill.
+5. Aplicar propiedad y modificadores: Elemento ofensivo vs defensivo, bonuses por race/element/size/special, reducciones entrantes.
+6. Aplicar multi-hit: Double Attack, `hit_count` de skill fisica.
+
+Estado actual del orden:
+
+- Autoattack directo aplica size solo a WeaponATK y deja Double Attack al final.
+- Autoattack directo y contrato de ataque basico usan `PhysicalAttackProfile` con componentes separados y `BasicPhysicalAttackFormulaService`.
+- Skills fisicas por contrato aplican `hit_count` al final del bloque fisico.
+- `CombatResolution.hitCount` permite representar golpes separados y consumo por golpe de Safety Wall.
+- DEF fisica comun usa `DefenseFormulaService`.
+- `SkillCombatSpec` tiene flags centrales: `range_type`, `element_policy`, `defense_policy` y `multi_hit_policy`.
+- El contrato de combate resuelve mobs desde `MobProfile`, por lo que level, stats base, HIT, FLEE, ATK, MATK, DEF, MDEF, race, elemento y tamano son comunes entre autoattack/skills.
+- Queda pendiente completar data por skill donde los defaults no basten.
 
 ## Rutas reales de combate
 
-Actualmente no hay una unica ruta de combate.
+Estado: `PARCIAL`.
 
-1. Autoattack jugador -> target:
-   - Entrada: `BasicAttackEventHandler` / `ServerboundRagnarBasicAttackPacket`.
-   - Motor: `RagnarCombatEngine.processBasicAttackRequest`.
-   - Formula directa: `RagnarCombatEngine.resolve`.
-   - Aplica dano real con `target.hurt`.
+Rutas activas:
 
-2. Skill packet combat:
-   - Entrada: `ServerboundRagnarSkillUsePacket`.
-   - Motor: `RagnarCombatEngine.handleSkillUseRequest`.
-   - Resolver: `RagnarSkillResolver`.
-   - Formula: `CombatContract.resolveSkill`.
+1. Autoattack jugador -> target: `RagnarCombatEngine.processBasicAttackRequest` -> `resolve`.
+2. Skill packet combat: `ServerboundRagnarSkillUsePacket` -> `RagnarSkillResolver` + `CombatContract.resolveSkill`.
+3. Skills de job hotbar: `ServerboundUseJobSkillPacket` -> `JobSkillExecutor` -> `JobSkillEffectRegistry`. Las skills de dano migradas usan la ruta de combate comun.
+4. Mob -> jugador: `MobPreRenewalDamageEventHandler.onLivingHurt`.
 
-3. Skills de job hotbar:
-   - Entrada: `ServerboundUseJobSkillPacket`.
-   - Motor: `JobSkillExecutor`.
-   - Efectos: `JobSkillEffectRegistry`.
-   - Muchas skills llaman directamente a `target.hurt`, usando dano vanilla/escalado, sin pasar por la formula RO completa.
+Brecha real:
 
-4. Mob -> jugador:
-   - Entrada: `MobPreRenewalDamageEventHandler.onLivingHurt`.
-   - Reescribe el dano de mobs contra `ServerPlayer`.
-   - Usa perfil de mob si existe.
-
-Conclusion: antes de buscar precision tipo Ragnarok, hay que unificar estas rutas o al menos hacer que todas llamen a los mismos servicios puros de formula.
+- `OK`: autoattack directo y contrato de ataque basico comparten snapshot fisico para StatusATK, WeaponATK, ArrowATK, WeaponLevel, rango y arma.
+- `PARCIAL`: skills fisicas ya consumen el mismo `PhysicalAttackProfile`, pero su ruta porcentual de skill conserva reglas propias por `SkillCombatSpec`.
 
 ## Autoattack fisico jugador
 
 Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- Cooldown de ataque basico.
-- Validacion de target.
-- Separacion basica melee/ranged usando `ProjectileWeaponItem`.
-- HIT = level + DEX.
-- FLEE = level + AGI para jugadores, o FLEE resuelto de mob si existe.
-- Perfect Dodge solo en jugadores target.
-- Critico antes de HIT/FLEE.
-- BaseATK melee/ranged por STR/DEX/LUK.
-- Size modifier aplicado al WeaponATK en la ruta directa.
-- Elemento ofensivo desde NBT del arma.
-- Elemento defensivo desde perfil del mob.
-- Hard/Soft DEF aplicados al final.
+- Cooldown de ataque basico, validacion server-side de target, melee/ranged basico segun arma.
+- HIT = level + DEX, FLEE = level + AGI, Perfect Dodge antes de HIT/FLEE, critico antes de HIT/FLEE.
+- Critico ignora DEF, BaseATK melee/ranged por STR/DEX/LUK.
+- Size modifier aplicado sobre WeaponATK, elemento ofensivo desde NBT del arma, elemento defensivo desde perfil de mob.
+- DEF antes de elemento/modificadores, Safety Wall y Pneuma bloquean rutas fisicas propias.
+- FLEE penalty por mobbing: mas de 2 monstruos atacando reducen FLEE 10% por monstruo adicional.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: el critico ignora FLEE, pero no ignora DEF. `docs/combat.md` dice que critico trata Hard DEF y Soft/VIT DEF como 0.
-- `CONFLICTO`: el orden actual aplica elemento y bonus antes de DEF en `RagnarCombatEngine.resolve`; el documento pone DEF/SoftDEF antes de elemento y bonuses.
-- `PARCIAL`: el WeaponATK viene de atributos vanilla o modificadores del item, no de una estructura RO completa con WeaponATK, WeaponLevel, refine y upgrade bonus.
-- `PARCIAL`: la variacion se aplica al total `statusAtk + sizedWeaponAtk`; el documento separa BaseATK estable y WeaponATK variable por DEX/WeaponLevel.
-- `NO`: no existen checks estructurales reales de Safety Wall y Pneuma dentro del flujo.
-- `NO`: no existe degradacion de FLEE por mobbing.
-- `NO`: no existe Double Attack/Katar/dual wield como parte formal del flujo de autoattack.
-- `NO`: no existe minimo/refine/mastery/bane/envenom en el orden documentado.
+- `PARCIAL`: WeaponATK viene de atributos vanilla/NBT, no de una estructura RO final con WeaponATK, WeaponLevel, refine y upgrade bonus.
+- `PARCIAL`: dual wield alterna manos y valida offhand, pero faltan penalizaciones oficiales, masteries y restricciones finales.
+- `PARCIAL`: Double Attack ya genera `hitCount`, popoffs separados y consume Safety Wall por golpe; falta resolucion/log persistido por golpe individual.
 
 ## Ranged y bow
 
 Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- Deteccion basica de arma ranged.
-- BaseATK ranged usa DEX como stat principal.
-- Snapshot de flechas en `RangedWeaponStatsHelper`.
-- Bow/crossbow tienen ATK fallback y draw ticks.
+- Deteccion basica de arma ranged, BaseATK ranged usa DEX.
+- `RangedWeaponStatsHelper` crea snapshots para proyectiles.
+- Arrow ATK temporal neutral `25` en rutas soportadas.
+- Pneuma bloquea ataques fisicos ranged del pipeline propio y proyectiles vanilla.
+- Vulture's Eye suma `range_bonus` al rango efectivo de autoattack ranged, Double Strafe y Arrow Shower.
 
-Brechas:
+Falta:
 
-- `NO`: no existe formula documentada de WeaponATK bow con `ArrowATK`.
-- `NO`: no se resuelve municion equipada como flecha RO.
-- `NO`: el elemento de bow normal queda neutral en snapshot; el documento dice que normalmente viene de la flecha.
-- `NO`: Pneuma no bloquea ataques ranged.
-- `PARCIAL`: hay projectile snapshots, pero el autoattack packet directo no usa un modelo RO completo de bow/flecha.
+- `BLOQUEADO`: flecha equipada real, ArrowATK, elemento y propiedades de flecha RO.
+- `PARCIAL`: validar si el rango aumentado debe aplicar a proyectiles vanilla fuera del pipeline propio.
 
 ## Magic
 
-Estado: `CONFLICTO`.
+Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- MATK min/max por INT existe en `DamageFormulaService`.
-- Cast variable por DEX existe en `RoPreRenewalFormulaService.variableCastSeconds`.
-- `CombatContract.resolveSkill` tiene rama magica.
-- Algunas skills magicas existen en `JobSkillEffectRegistry`.
+- MATK min/max por INT, rama magica en `CombatContract`, MDEF porcentual + soft MDEF.
+- Cast real para job hotbar y packet combat, cast variable reducido por DEX.
+- Finalizacion de cast en tick server-side, interrupcion por dano si no hay resistencia total.
+- Magia por contrato usa `ALWAYS_HIT` por defecto.
+- Silence RO propio bloquea casteo en job hotbar y packet combat.
+- Cure limpia Silence si el caster puede castear.
+- Blind RO reduce HIT/FLEE; Chaos RO existe como puente desde Confusion/Nausea y aplica targeting/movimiento caotico basico.
+- Hiding RO propio bloquea targeting normal, restringe movimiento y ya no depende de `INVISIBILITY`.
+- Stone Curse cambia defensa a Earth 1, inmoviliza con estado propio y se rompe con dano.
+- Los efectos vanilla compatibles se convierten a estados RO y luego se remueven; los no compatibles se remueven.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: muchas skills magicas ejecutan `target.hurt(...magic(), scaledMagicDamage(...))`, sin MATK/MDEF/elemento/cast real.
-- `CONFLICTO`: `RagnarDamageCalculator.applyMagicDefense` termina usando `CombatMath.applyMagicDefense`, que resta `softMDEF + hardMDEF` plano. El documento dice `raw * (1 - MDEF/100) - INT - VIT/2`.
-- `PARCIAL`: el cast existe como formula, pero no esta integrado como sistema comun con interrupcion, rango, linea de vision y after-cast para todas las skills.
-- `NO`: no hay interrupcion de cast por recibir dano.
-- `NO`: no hay regla central de "magia casteada no usa HIT/FLEE".
+- `PARCIAL`: no todas las reglas especiales de magia estan completas.
+- `PARCIAL`: faltan estados RO canonicos adicionales y afinacion fina por servidor objetivo.
+- `BLOQUEADO`: UI final de barra de cast, modificadores de equipo/cartas para cast e interrupcion.
 
 ## Mob -> jugador
 
 Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- Usa `MobProfile`.
-- Usa `profile.hit()` contra FLEE del jugador.
-- Usa Perfect Dodge del jugador.
-- Daño normal del mob usa `atkMin..atkMax`, no STR del mob. Esto coincide con el documento.
-- Aplica DEF fisica y reducciones.
+- Usa `MobProfile`, HIT de mob contra FLEE del jugador, Perfect Dodge del jugador.
+- Dano normal usa `atkMin..atkMax`, ataque normal de mob usa elemento Neutral, no crit normal.
+- DEF fisica y reducciones se aplican, Safety Wall/Pneuma bloquean melee/proyectiles vanilla.
+- Ranged de mob se clasifica por proyectil o por `profile.attackRange() > 3`.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: el elemento del ataque normal del mob se toma desde el elemento defensivo del mob. El documento dice que ataque normal de mob es Neutral; solo skills de mob cambian elemento.
-- `CONFLICTO`: el codigo permite critico normal por `profile.crit()`. El documento dice que mobs no crittean por LUK normal; critico solo por skills como Critical Slash/Counter Attack.
-- `NO`: no se distingue ataque melee/ranged del mob por attack range para Safety Wall/Pneuma.
-- `NO`: no existe MaxATK garantizado para critico de mob por skill.
-- `PARCIAL`: soft/hard DEF del jugador se aplican, pero si algun ataque critico existe no se salta DEF como indica el documento.
+- `NO`: MaxATK garantizado para critico de mob por skill futura.
+- `PARCIAL`: si se agrega skill critica de mob, debe saltar DEF.
 
 ## HIT, FLEE, CRIT y Perfect Dodge
 
 Estado: `PARCIAL`.
 
-Coincidencias:
+Existe:
 
-- HIT: `level + DEX`.
-- FLEE: `level + AGI`.
-- Hit chance: `80 + HIT - FLEE`, clamp 5%-95% en codigo.
-- Critico se tira antes de HIT/FLEE.
-- Perfect Dodge se tira antes del critico/hit.
-- Mobs target no hacen Perfect Dodge en la ruta directa.
+- HIT: `level + DEX`, FLEE: `level + AGI`.
+- Hit chance: `80 + HIT - FLEE`, clamp 5%-95%.
+- Crit chance: `1 + LUK * 0.3`, Crit shield: `floor(LUK / 5)`.
+- Katar duplica la chance critica antes de aplicar Crit Shield.
+- Perfect Dodge: `1 + floor(LUK / 10)`.
+- Perfect Dodge antes de crit/hit, crit antes de HIT/FLEE, FLEE penalty por mobbing.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: crit real en codigo no incluye el `1 + LUK * 0.3` del documento; usa solo `LUK * 0.3`.
-- `CONFLICTO`: crit shield de jugador suma `floor(level/15) + floor(LUK/5)`. El documento actual solo indica `TargetLUK/5`.
-- `CONFLICTO`: Perfect Dodge de jugador en codigo es `LUK * 0.1%`; el documento dice `1 + floor(LUK/10) + bonos`.
-- `NO`: Katar no duplica crit.
-- `NO`: no hay FLEE penalty por multiples atacantes.
+- `PARCIAL`: bonuses externos de CRIT/PDODGE dependen de equipment/cards finales.
 
 ## DEF y MDEF
 
-Estado: `CONFLICTO`.
+Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- `DefenseFormulaService.applyPhysicalDefense` aplica Hard DEF porcentual y luego Soft DEF.
-- `CombatMath.applyPhysicalDefense` existe tambien, pero usa otro orden: resta Soft DEF y luego aplica reduccion.
-- `DefenseFormulaService.applyMagicDefense` aplica MDEF porcentual y soft MDEF.
+- Hard DEF como reduccion porcentual, Soft DEF despues de hard DEF, critico salta DEF.
+- MDEF porcentual + soft MDEF, `DefenseFormulaService` centraliza formulas.
+- La ruta comun ya usa roll Pre-Renewal de SoftDEF de jugador o mob segun tipo.
+- La SoftDEF de mob usa VIT del `MobProfile` en autoattack directo y en contrato de skills.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: hay dos implementaciones fisicas con orden distinto.
-- `CONFLICTO`: la ruta `CombatContract` usa `RagnarDamageCalculator`, que usa `CombatMath`, no `DefenseFormulaService`.
-- `CONFLICTO`: la ruta magica de `RagnarDamageCalculator` no usa la formula porcentual correcta de MDEF.
-- `PARCIAL`: SoftDEF jugador es determinista; el documento dice que tiene componente random.
-- `PARCIAL`: SoftDEF mob se toma como stat resuelto, no se calcula como `VIT + rnd(0, floor(VIT/20)^2 - 1)`.
-- `PARCIAL`: Hard DEF de equipo jugador parece existir como campo derivado, pero no hay una integracion completa de armaduras/refine RO.
+- `BLOQUEADO`: hard DEF/MDEF de equipo/refine RO.
 
 ## Size modifier
 
 Estado: `PARCIAL`.
 
-Coincide para:
+Existe:
 
-- Dagger.
-- Sword 1H.
-- Sword 2H si tag `two_handed`.
-- Spear sin Peco.
-- Axe.
-- Mace.
-- Bow.
-- Katar.
+- Dagger, Sword 1H, Sword 2H por tag `two_handed`, Spear sin Peco, Axe, Mace, Bow, Katar y Rod/Staff/Wand.
+- Rod/Staff/Wand usa 100/100/100 contra small/medium/large.
+- Si no hay size resuelto desde un perfil inicializado, se usa hitbox: small <= 1 bloque, medium <= 3, large > 3.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: staff/wand se tratan como mace; el documento dice que Rod es 100/100/100.
-- `NO`: Fist, Spear+Peco, Book, Claw, Instrument, Whip, Gun y Huuma Shuriken no estan modelados.
-- `PARCIAL`: depende de clases vanilla y tags; si los items RO no tienen tags correctos, caen a 100/100/100.
-- `CONFLICTO`: en `RagnarDamageCalculator.applyModifiers`, el size modifier se aplica a todo el dano fisico. El documento dice que afecta WeaponATK, no todo el dano.
+- `NO`: Fist, Spear+Peco, Book, Claw, Instrument, Whip, Gun, Huuma Shuriken.
+- `BLOQUEADO`: tags/tipos de armas RO finales.
 
 ## Elementos
 
 Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- Tabla elemental Pre-Renewal con nivel defensivo 1-4.
-- Elemento defensivo de mob desde perfil.
-- Elemento defensivo default Neutral 1.
-- Elemento ofensivo de arma desde NBT.
+- Tabla elemental Pre-Renewal con defensa nivel 1-4, elemento defensivo de mob desde perfil.
+- Frozen cambia defensa a Water 1, default Neutral 1.
+- Elemento ofensivo de arma desde NBT, `shadow` alias de `DARK`, ataque normal de mob usa Neutral.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: ataque normal de mob usa elemento defensivo del mob; debe ser Neutral.
-- `NO`: elemento de flecha no esta integrado.
-- `NO`: endows y forced element por skill no estan completos.
-- `PARCIAL`: Shadow se mapea como `DARK`; funcionalmente puede servir, pero conviene normalizar nombre de dominio a `SHADOW`.
-- `PARCIAL`: multiplicadores negativos/0 existen en tabla, pero varias rutas hacen clamp a minimo 0 o 1, asi que no esta claro si se preserva heal/negative/0 visual como RO.
+- `BLOQUEADO`: elemento de flecha equipada.
+- `PARCIAL`: endows y forced element por skill no cerrados para todas las rutas.
+- `PARCIAL`: decidir si dominio interno queda como `DARK` o se renombra a `SHADOW`.
+- `PARCIAL`: multiplicadores elementales 0/negativos existen en tabla, pero varias rutas clipean dano final.
 
 ## Cards, bonuses y reducciones
 
-Estado: `CONFLICTO`.
+Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- Lee modificadores NBT de items/cartas.
-- Tiene keys para `damage_all`, `damage_race`, `damage_element`, `damage_size`.
-- Tiene reduccion elemental entrante.
+- Lectura de modificadores por NBT, claves ofensivas por all/race/element/size y reducciones entrantes por all/race/element/size.
+- Las categorias ofensivas se suman dentro de su categoria y se multiplican entre categorias.
+- Las categorias defensivas se suman dentro de su categoria y se multiplican entre categorias.
+- Hay card JSON para todos los mobs vanilla perfilados en `VanillaMobTaxonomyDefaults`; `illusioner` queda como extra valido.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: todos los bonuses ofensivos se suman en una sola categoria. El documento dice: mismo tipo suma, categorias distintas multiplican.
-- `NO`: reducciones por size/race/special no existen como categorias completas.
-- `PARCIAL`: no hay aplicacion clara de mastery/bane/refine/envenom en el orden documentado.
+- `PARCIAL`: cards actuales tienen bonuses basicos; faltan efectos especiales tipo RO y balance final.
+- `BLOQUEADO`: equipment final.
 
 ## ASPD y autoattack timing
 
 Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- Cooldown server y client usan `AttackCadenceCalculator`.
-- ASPD se convierte a ataques por segundo con `50 / (200 - ASPD)`.
-- Hay base ASPD melee/ranged simplificada.
+- Cooldown server/client mediante `AttackCadenceCalculator`.
+- ASPD usa modelo documentado `WD = 200 - baseWeaponASPD`, reduccion por AGI/DEX y conversion `50 / (200 - ASPD)`.
+- `WeaponAspdTableService` centraliza base ASPD por job/familia de arma y respeta overrides `combatProfile.aspd`.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: la formula de ASPD actual es aproximada: `baseWeaponAspd + AGI*0.25 + DEX*0.1 - shieldPenalty`.
-- `NO`: no existe modelo documentado `WD = 50 * BTBA` ni speed modifiers.
-- `NO`: no hay tabla clase/arma.
-- `NO`: potions ASPD no estan modeladas con regla de no apilar.
+- `PARCIAL`: la tabla clase/arma actual es provisional de compatibilidad, no tabla oficial final de RO.
+- `PARCIAL`: speed modifiers existen como parametro de formula, pero faltan fuentes reales de buffs/pociones/equipo RO.
+- `BLOQUEADO`: pociones ASPD.
 
-## Skills fisicas
+## Skills fisicas y magicas
 
-Estado: `CONFLICTO`.
+Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- `SkillCombatSpecResolver` crea specs para varias skills.
-- `CombatContract.resolveSkill` tiene ruta fisica.
-- `JobSkillEffectRegistry` tiene muchos efectos activos.
+- `SkillCombatSpecResolver` crea specs, `CombatContract.resolveSkill` tiene rutas fisica y magica.
+- Muchas skills de dano del job hotbar pasan por la ruta de combate.
+- Ground target existe para Pneuma, Safety Wall, Fire Wall, Thunder Storm y Arrow Shower.
+- `SkillCombatSpec` tiene flags centrales: `range_type`, `element_policy`, `defense_policy`, `multi_hit_policy`.
+- Skills de dano revisadas ya declaran bloque `combat` en data.
+- Resoluciones de combate tienen `hitCount` para golpes multiples separados.
+- Safety Wall consume golpes segun `hitCount`.
+- Thunder Storm agenda impactos separados usando `hit_spacing_ticks`.
+- `SkillCombatSpecResolver` parsea `damage_type`, `element`, `hit_policy`, `range_type`, `element_policy`, `defense_policy` y `multi_hit_policy` desde data.
 
-Brechas:
+Falta:
 
-- `CONFLICTO`: muchas skills fisicas del job hotbar aplican `target.hurt` directo con `scaledAttackDamage`, sin HIT/FLEE/DEF/elemento/cards/size RO.
-- `CONFLICTO`: `SkillCombatSpecResolver` no parsea realmente `damage_type`, `element` ni `hit_policy`; devuelve fallbacks.
-- `PARCIAL`: hay defaults por skill, pero no reglas especiales completas por skill.
-- `NO`: no hay flags centrales para autohit, bonus HIT, ignore DEF, forced element, weapon element, ranged/melee, multi-hit real.
+- `PARCIAL`: multi-hit emite popoffs separados; falta resoluciones persistidas por golpe para logs/analytics.
+- `PARCIAL`: algunas skills conservan efectos legacy auxiliares despues del contrato.
+- `OK`: Blessing ya no limpia `WITHER`; Poison/Wither quedan bajo Detoxify y conversion Poison RO.
 
 ## HP, SP y recursos
 
 Estado: `PARCIAL`.
 
-Lo que existe:
+Existe:
 
-- HP/SP max y regen se derivan desde stats.
-- Skills consumen SP en `JobSkillExecutor`.
-- Hay sync de recursos.
+- HP/SP max y regen derivados desde stats, skills consumen SP, sync de recursos.
 
-Brechas:
+Falta:
 
-- `PARCIAL`: HP/SP usan formulas simplificadas, no tablas job/class Pre-Renewal.
-- `NO`: peso, estados y muchas resistencias todavia no participan en combate como indica el documento.
+- `PARCIAL`: HP/SP usan formulas simplificadas, no tablas job/class completas.
+- `BLOQUEADO`: peso, consumibles, potions, inventory/equipment final.
 
-## Decision tecnica recomendada
+## Pendiente implementable ahora
 
-Para implementar correctamente, no conviene seguir parchando cada ruta. La limpieza correcta es:
+1. Completar reglas fisicas finas que aun dependen de data final: refine, upgrade bonus y dual wield avanzado.
+2. Reemplazar tabla ASPD provisional por tabla oficial validada si se decide buscar paridad exacta de RO.
+3. Completar estados RO canonicos adicionales y pendientes especificos: Cloaking futuro, SP drain de Hiding y consumibles reales.
 
-1. Declarar `docs/combat.md` como fuente de verdad y marcar cualquier doc antiguo conflictivo como obsoleto.
-2. Crear un nucleo puro de formulas RO:
-   - hit/flee/crit/perfect dodge.
-   - physical BaseATK.
-   - WeaponATK melee.
-   - WeaponATK bow + ArrowATK.
-   - DEF fisica.
-   - MATK/MDEF.
-   - size table.
-   - element table.
-   - bonus/reduction categories.
-3. Crear snapshots unificados:
-   - `AttackContext`: basic/skill, melee/ranged/magic, hit policy, element policy, weapon, arrow, skill modifier.
-   - `AttackerSnapshot`: stats, level, weapon stats, cards, buffs.
-   - `DefenderSnapshot`: FLEE, Perfect Dodge, crit shield, DEF/MDEF, race, size, element, reductions.
-4. Hacer que autoattack, skill packet, job hotbar y mob damage llamen al mismo nucleo.
-5. Reescribir las skills para que sus efectos visuales/estados sean secundarios; el dano debe salir del nucleo.
-6. Agregar tests por regla del documento antes de extender contenido.
+## Pendiente bloqueado por otros sistemas
 
-## Orden de implementacion propuesto
+- Flechas RO reales.
+- Armas RO reales: WeaponATK, WeaponLevel, refine, tipo, slots/cards.
+- Equipment/inventario final.
+- Economy/zeny.
+- Consumibles/catalysts.
+- Party/friendly targeting.
+- UI final de cast/menus.
+- Estados RO completos y politica final para efectos vanilla/otros mods.
 
-1. Unificar formula fisica basica jugador -> mob:
-   - crit ignora DEF.
-   - orden correcto: hit/crit, BaseATK, WeaponATK, size, DEF, softDEF, elemento, bonuses, reductions.
-   - WeaponATK separado de BaseATK.
+## Pruebas de combate
 
-2. Corregir HIT/CRIT/Perfect Dodge:
-   - crit base `1 + LUK*0.3`.
-   - crit shield segun documento actual: `TargetLUK/5`.
-   - Perfect Dodge `1 + floor(LUK/10) + bonuses`.
-   - Katar x2 crit cuando exista categoria katar.
-
-3. Corregir DEF/MDEF:
-   - eliminar doble implementacion contradictoria.
-   - SoftDEF jugador con random.
-   - SoftDEF mob desde VIT si existe.
-   - MDEF porcentual + `INT + VIT/2`.
-
-4. Corregir weapon/size:
-   - tabla completa por tipo de arma.
-   - tags/tipos RO, no clases vanilla como fuente principal.
-   - size solo sobre WeaponATK.
-
-5. Implementar bow real:
-   - flecha equipada.
-   - ArrowATK.
-   - elemento de flecha.
-   - Pneuma hook preparado.
-
-6. Corregir mob normal attack:
-   - elemento Neutral.
-   - sin crit normal por LUK/profile.
-   - crit solo por skill futura.
-   - attack range para melee/ranged.
-
-7. Migrar skills:
-   - `JobSkillEffectRegistry` deja de aplicar dano directo.
-   - `CombatContract` o su reemplazo calcula dano.
-   - cada skill declara hit policy, element policy, damage type, hit count, ranged/melee, ignore DEF si aplica.
-
-8. ASPD:
-   - reemplazar formula aproximada por BTBA/WD/SM.
-   - tabla clase/arma.
-   - potions no apilables.
-
-## Bloqueadores reales
-
-- Falta definir de donde saldran, en datos, estos campos de arma: WeaponATK, WeaponLevel, refine, tipo RO, element, slots/cards y ranged profile.
-- Falta definir de donde saldra la flecha equipada y su ATK/elemento.
-- Falta definir representacion real de Safety Wall/Pneuma en mundo: zona, duracion, hits restantes y tipo de bloqueo.
-- Falta decidir si `ElementType.DARK` se renombra a `SHADOW` o si se mantiene alias interno.
-
-Mientras esos campos no existan, se puede implementar el nucleo con defaults, pero no se puede afirmar fidelidad completa al documento.
+- `RagnarCombatEngineFormulaTest.java` cubre: critico conecta aunque HIT normal fallaria, crit shield, elemento en calculador comun, dano magico sin penalidad de tamano.

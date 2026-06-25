@@ -17,12 +17,16 @@ public class RagnarCombatFeedbackService {
 
         Entity trackingBasis = target != null ? target : attacker;
         if (trackingBasis != null) {
-            Network.sendTrackingEntityAndSelf(trackingBasis, new ClientboundRagnarCombatResultPacket(
-                    attacker != null ? attacker.getId() : -1,
-                    resolution.targetEntityId(),
-                    resolution.resultType(),
-                    (float) resolution.finalDamage(),
-                    resolution.critical()));
+            int packets = resolution.dealsDamage() ? Math.max(1, resolution.hitCount()) : 1;
+            float damage = packets > 1 ? (float) (resolution.finalDamage() / packets) : (float) resolution.finalDamage();
+            for (int i = 0; i < packets; i++) {
+                Network.sendTrackingEntityAndSelf(trackingBasis, new ClientboundRagnarCombatResultPacket(
+                        attacker != null ? attacker.getId() : -1,
+                        resolution.targetEntityId(),
+                        resolution.resultType(),
+                        damage,
+                        resolution.critical()));
+            }
         }
 
         if (attacker != null

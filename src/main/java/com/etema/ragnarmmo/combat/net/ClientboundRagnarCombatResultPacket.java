@@ -43,6 +43,10 @@ public record ClientboundRagnarCombatResultPacket(
                         : Component.translatable("message.ragnarmmo.combat_result.miss").getString();
                 color = 0xFF9BA7B4;
             }
+            case BLOCKED -> {
+                text = Component.translatable("message.ragnarmmo.combat_result.blocked").getString();
+                color = 0xFF8FD7FF;
+            }
             default -> {
                 return;
             }

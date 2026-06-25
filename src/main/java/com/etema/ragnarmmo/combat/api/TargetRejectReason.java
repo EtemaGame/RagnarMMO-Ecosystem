@@ -7,6 +7,7 @@ public enum TargetRejectReason {
     TARGET_DEAD,
     TARGET_INVULNERABLE,
     TARGET_OUT_OF_RANGE,
+    TARGET_HIDDEN,
     SELF_TARGET,
     TARGET_REMOVED
 }

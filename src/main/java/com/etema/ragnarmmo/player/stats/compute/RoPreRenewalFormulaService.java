@@ -48,10 +48,16 @@ public final class RoPreRenewalFormulaService {
     }
 
     public static int aspdRo(int baseWeaponAspd, boolean hasShield, int agi, int dex, double bonus) {
-        double aspd = baseWeaponAspd
-                + Math.max(0, agi) * 0.25D
-                + Math.max(0, dex) * 0.1D
-                + bonus;
+        return aspdRo(baseWeaponAspd, hasShield, agi, dex, 0.0D, bonus);
+    }
+
+    public static int aspdRo(int baseWeaponAspd, boolean hasShield, int agi, int dex, double speedModifier,
+            double flatBonus) {
+        double weaponDelay = Math.max(1.0D, 200.0D - clamp(ASPD_RO_MIN, ASPD_RO_MAX, baseWeaponAspd));
+        double statReduction = (Math.floor(weaponDelay * Math.max(0, agi) / 25.0D)
+                + Math.floor(weaponDelay * Math.max(0, dex) / 100.0D)) / 10.0D;
+        double speedFactor = 1.0D - clamp(-1.0D, 0.95D, speedModifier);
+        double aspd = 200.0D - ((weaponDelay - statReduction) * speedFactor) + flatBonus;
         if (hasShield) {
             aspd -= SHIELD_ASPD_PENALTY;
         }

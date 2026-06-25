@@ -4,6 +4,7 @@ import com.etema.ragnarmmo.combat.RagnarMMOCombat;
 import com.etema.ragnarmmo.combat.api.BasicAttackSource;
 import com.etema.ragnarmmo.combat.api.RagnarAttackRequest;
 import com.etema.ragnarmmo.combat.engine.RagnarCombatEngine;
+import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,6 +18,10 @@ public final class BasicAttackEventHandler {
     @SubscribeEvent
     public static void onAttackEntity(AttackEntityEvent event) {
         if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        if (RoCombatStatusService.hasHiding(player)) {
+            event.setCanceled(true);
             return;
         }
         var outcome = RagnarCombatEngine.get().processBasicAttackRequest(player,

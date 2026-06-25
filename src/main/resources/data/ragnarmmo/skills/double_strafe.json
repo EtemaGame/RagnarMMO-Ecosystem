@@ -27,6 +27,14 @@
     "reference": {
         "notes": "Double Strafing: RO_EXACT core. Always 2 logical bow hits; each hit uses damage_percent from this table."
     },
+    "combat": {
+        "damage_type": "physical",
+        "range_type": "ranged",
+        "element_policy": "weapon",
+        "hit_policy": "basic_attack",
+        "defense_policy": "normal",
+        "multi_hit_policy": "per_hit"
+    },
     "level_data": {
         "1": { "sp_cost": 12, "damage_percent": 100, "total_damage_percent": 200, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
         "2": { "sp_cost": 12, "damage_percent": 110, "total_damage_percent": 220, "hit_count": 2, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },

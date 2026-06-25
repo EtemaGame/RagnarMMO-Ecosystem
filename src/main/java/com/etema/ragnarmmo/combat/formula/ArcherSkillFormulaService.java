@@ -24,6 +24,10 @@ public final class ArcherSkillFormulaService {
         return Math.max(0, skillLevel);
     }
 
+    public static int vultureRangeBonus(ServerPlayer player) {
+        return vultureRangeBonus(skillLevel(player, "vultures_eye"));
+    }
+
     public static int improveConcentrationPercent(int skillLevel) {
         return Math.max(0, 2 + skillLevel);
     }

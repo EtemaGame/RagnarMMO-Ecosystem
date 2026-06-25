@@ -1,0 +1,12 @@
+{
+    "id": "elder_guardian_card",
+    "displayName": "Elder Guardian Card",
+    "mobId": "minecraft:elder_guardian",
+    "equipType": "armor",
+    "modifiers": {
+        "ragnarmmo:vit": 2.0,
+        "ragnarmmo:resist_element_water": 0.20
+    },
+    "dropRate": 0.0025,
+    "modelId": 76
+}

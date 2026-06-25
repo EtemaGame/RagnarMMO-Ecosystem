@@ -27,6 +27,15 @@
     "reference": {
         "notes": "Envenom: RO_EXACT-ish poison attack; chance and duration are data-driven."
     },
+    "combat": {
+        "damage_type": "physical",
+        "range_type": "melee",
+        "element": "poison",
+        "element_policy": "skill",
+        "hit_policy": "basic_attack",
+        "defense_policy": "normal",
+        "multi_hit_policy": "single"
+    },
     "level_data": {
         "1": { "sp_cost": 12, "damage_percent": 100, "flat_damage_bonus": 15, "status_chance": 0.14, "poison_duration_ticks": 1200, "range": 2, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },
         "2": { "sp_cost": 12, "damage_percent": 100, "flat_damage_bonus": 30, "status_chance": 0.18, "poison_duration_ticks": 1200, "range": 2, "cast_time_ticks": 0, "cast_delay_ticks": 10, "cooldown_ticks": 0 },

@@ -5,8 +5,11 @@ import com.etema.ragnarmmo.combat.api.CombatResolution;
 import com.etema.ragnarmmo.combat.engine.RagnarDamageCalculator;
 import com.etema.ragnarmmo.combat.engine.RagnarHitCalculator;
 import com.etema.ragnarmmo.combat.formula.AcolyteSkillFormulaService;
+import com.etema.ragnarmmo.combat.formula.BasicPhysicalAttackFormulaService;
 import com.etema.ragnarmmo.combat.formula.CombatPropertyModifierService;
 import com.etema.ragnarmmo.combat.formula.SwordmanSkillFormulaService;
+import com.etema.ragnarmmo.combat.element.CombatPropertyResolver;
+import com.etema.ragnarmmo.combat.element.ElementType;
 import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,26 +60,17 @@ public final class CombatContract {
                     null);
         }
 
-        double baseAttack = attacker.physicalAttack().averageAttack()
-                * RoCombatStatusService.physicalAttackMultiplier(attacker.entity());
-        double damage = damageCalculator.computePhysicalDamage(
-                baseAttack,
-                attacker.stats().dex(),
-                attacker.stats().luk(),
+        boolean critical = hit == CombatHitResultType.CRIT;
+        double damage = BasicPhysicalAttackFormulaService.damageBeforeDefense(
+                attacker.physicalAttack(),
+                attacker.stats(),
+                defender.modifiers().size(),
+                critical,
+                RoCombatStatusService.physicalAttackMultiplier(attacker.entity()),
                 rng);
 
-        boolean critical = hit == CombatHitResultType.CRIT;
-        if (critical) {
-            damage *= Math.max(1.0D, attacker.physicalAttack().critDamageMultiplier());
-        }
-
         if (!critical) {
-            damage = damageCalculator.applyPhysicalDefense(
-                    damage,
-                    defender.defense().vit(),
-                    defender.defense().agi(),
-                    defender.defense().level(),
-                    adjustedHardDef(defender));
+            damage = damageCalculator.applyPhysicalDefense(damage, defender, false, rng);
         }
         if (attacker.entity() instanceof ServerPlayer player) {
             damage += SwordmanSkillFormulaService.weaponMasteryBonus(player, attacker.physicalAttack().weapon());
@@ -91,6 +85,13 @@ public final class CombatContract {
         }
         damage = PassiveCombatModifierService.applyOutgoingPhysicalDamage(attacker, defender, damage);
         damage = PassiveCombatModifierService.applyIncomingPhysicalDamage(attacker, defender, damage);
+        if (defender.entity() instanceof Player player) {
+            damage *= CombatPropertyModifierService.incomingDamageMultiplier(
+                    player,
+                    attacker.modifiers().race(),
+                    attacker.modifiers().element(),
+                    attacker.modifiers().size());
+        }
         damage *= doubleAttack.hitCount();
 
         double finalDamage = positiveDamageOrZero(damage);
@@ -101,7 +102,8 @@ public final class CombatContract {
                         damage,
                         finalDamage,
                         critical,
-                        hitRate),
+                        hitRate,
+                        doubleAttack.hitCount()),
                 attacker.fallback() || defender.fallback(),
                 null);
     }
@@ -139,51 +141,84 @@ public final class CombatContract {
         }
 
         double baseDamage = switch (spec.damageType()) {
-            case MAGICAL, TRUE -> attacker.magicAttack().averageMagicAttack();
+            case MAGICAL -> attacker.magicAttack().rollMagicAttack(rng);
+            case TRUE -> attacker.magicAttack().averageMagicAttack();
             case PHYSICAL -> attacker.physicalAttack().averageAttack();
         };
         double damage = baseDamage * (spec.damagePercent() / 100.0D) * spec.hitCount();
         if (spec.damageType() == RagnarDamageType.PHYSICAL) {
+            int physicalHitMultiplier = spec.multiHitPolicy() == SkillMultiHitPolicy.PER_HIT ? spec.hitCount() : 1;
+            double preDefenseHitMultiplier = spec.multiHitPolicy() == SkillMultiHitPolicy.PER_HIT ? 1.0D : spec.hitCount();
             double defenseBypassDamage = 0.0D;
             if (spec.defenseBypassPercent() > 0.0D && spec.damagePercent() > 0.0D) {
-                defenseBypassDamage = baseDamage * (spec.defenseBypassPercent() / 100.0D) * spec.hitCount();
-                damage = baseDamage * ((spec.damagePercent() - spec.defenseBypassPercent()) / 100.0D) * spec.hitCount();
+                defenseBypassDamage = baseDamage * (spec.defenseBypassPercent() / 100.0D) * preDefenseHitMultiplier;
+                damage = baseDamage * ((spec.damagePercent() - spec.defenseBypassPercent()) / 100.0D) * preDefenseHitMultiplier;
+            } else {
+                damage = baseDamage * (spec.damagePercent() / 100.0D) * preDefenseHitMultiplier;
             }
             damage = damageCalculator.computePhysicalDamage(damage, attacker.stats().dex(), attacker.stats().luk(), rng);
             damage *= RoCombatStatusService.physicalAttackMultiplier(attacker.entity());
-            damage = damageCalculator.applyPhysicalDefense(damage, defender.defense().vit(), defender.defense().agi(),
-                    defender.defense().level(), adjustedHardDef(defender));
+            if (spec.defensePolicy() != SkillDefensePolicy.IGNORE_DEF) {
+                damage = damageCalculator.applyPhysicalDefense(damage, defender, false, rng);
+            }
             damage += defenseBypassDamage;
             damage += spec.flatDamageBonus();
             if (attacker.entity() instanceof ServerPlayer player) {
                 damage += SwordmanSkillFormulaService.weaponMasteryBonus(player, attacker.physicalAttack().weapon());
                 damage += AcolyteSkillFormulaService.demonBaneBonus(player, defender.entity());
             }
-            damage = damageCalculator.applyElement(damage, defender.modifiers(), spec.element());
+            ElementType attackElement = resolvePhysicalSkillElement(attacker, spec);
+            damage = damageCalculator.applyElement(damage, defender.modifiers(), attackElement);
             if (attacker.entity() instanceof Player player) {
                 damage *= CombatPropertyModifierService.outgoingDamageMultiplier(player,
                         defender.modifiers().race(),
                         defender.modifiers().element(),
                         defender.modifiers().size());
             }
+            if (defender.entity() instanceof Player player) {
+                damage *= CombatPropertyModifierService.incomingDamageMultiplier(
+                        player,
+                        attacker.modifiers().race(),
+                        attackElement,
+                        attacker.modifiers().size());
+            }
+            damage *= physicalHitMultiplier;
         } else if (spec.damageType() == RagnarDamageType.MAGICAL) {
+            int magicalHitMultiplier = spec.multiHitPolicy() == SkillMultiHitPolicy.PER_HIT ? spec.hitCount() : 1;
+            if (spec.multiHitPolicy() == SkillMultiHitPolicy.PER_HIT) {
+                damage = baseDamage * (spec.damagePercent() / 100.0D);
+            }
             damage = damageCalculator.applyModifiers(
                     damage,
                     attacker.physicalAttack().weapon(),
                     defender.modifiers(),
                     spec.element(),
                     true);
-            damage = damageCalculator.applyMagicDefense(damage, defender.defense().intel(), defender.defense().vit(),
-                    defender.defense().agi(), defender.defense().level(), defender.defense().hardMdef());
+            if (spec.defensePolicy() != SkillDefensePolicy.IGNORE_DEF) {
+                damage = damageCalculator.applyMagicDefense(damage, defender);
+            }
+            if (defender.modifiers().element() == com.etema.ragnarmmo.combat.element.ElementType.UNDEAD) {
+                damage *= spec.undeadMultiplier();
+            }
+            if (defender.entity() instanceof Player player) {
+                damage *= CombatPropertyModifierService.incomingDamageMultiplier(
+                        player,
+                        attacker.modifiers().race(),
+                        spec.element(),
+                        attacker.modifiers().size());
+            }
+            damage *= magicalHitMultiplier;
         }
         double finalDamage = positiveDamageOrZero(damage);
+        int feedbackHitCount = spec.multiHitPolicy() == SkillMultiHitPolicy.PER_HIT ? spec.hitCount() : 1;
         return new CombatContractResult(
                 new CombatResolution(defender.entity().getId(),
                         damage > 0.0D ? CombatHitResultType.HIT : CombatHitResultType.MISS,
                         damage,
                         finalDamage,
                         false,
-                        1.0D),
+                        1.0D,
+                        feedbackHitCount),
                 attacker.fallback() || defender.fallback(),
                 null);
     }
@@ -192,10 +227,10 @@ public final class CombatContract {
         return damage > 0.0D ? Math.max(1.0D, damage) : 0.0D;
     }
 
-    private static double adjustedHardDef(CombatantProfile defender) {
-        if (defender == null || defender.entity() instanceof ServerPlayer) {
-            return defender == null ? 0.0D : defender.defense().hardDef();
+    private static ElementType resolvePhysicalSkillElement(CombatantProfile attacker, SkillCombatSpec spec) {
+        if (spec.elementPolicy() == SkillElementPolicy.SKILL) {
+            return spec.element();
         }
-        return defender.defense().hardDef() * RoCombatStatusService.physicalDefenseMultiplier(defender.entity());
+        return CombatPropertyResolver.getAttackElement(attacker.physicalAttack().weapon());
     }
 }

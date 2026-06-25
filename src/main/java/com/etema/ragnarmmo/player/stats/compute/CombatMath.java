@@ -16,6 +16,7 @@ import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TridentItem;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -55,12 +56,11 @@ public final class CombatMath {
         Item item = weapon.getItem();
         boolean isDagger = weapon.getTags().anyMatch(t -> t.location().getPath().contains("daggers"));
         boolean isMace = weapon.getTags().anyMatch(t -> t.location().getPath().contains("maces"));
-        boolean isStaff = weapon.getTags().anyMatch(t -> t.location().getPath().contains("staves"));
-        boolean isWand = weapon.getTags().anyMatch(t -> t.location().getPath().contains("wands"));
+        boolean isRod = isRodWeapon(weapon);
         boolean isTwoHanded = weapon.getTags().anyMatch(t -> t.location().getPath().contains("two_handed"));
         boolean isSpear = item instanceof TridentItem
                 || weapon.getTags().anyMatch(t -> t.location().getPath().contains("spears"));
-        boolean isKatar = weapon.getTags().anyMatch(t -> t.location().getPath().contains("katars"));
+        boolean isKatar = isKatarWeapon(weapon);
 
         if (isDagger) {
             return switch (size) {
@@ -76,7 +76,10 @@ public final class CombatMath {
                 case LARGE -> 1.0D;
             };
         }
-        if (isMace || isStaff || isWand) {
+        if (isRod) {
+            return 1.0D;
+        }
+        if (isMace) {
             return switch (size) {
                 case SMALL -> 0.75D;
                 case MEDIUM -> 1.0D;
@@ -114,6 +117,25 @@ public final class CombatMath {
         if (item instanceof BowItem || item instanceof CrossbowItem) {
             return switch (size) {
                 case SMALL -> 1.0D;
+                case MEDIUM -> 1.0D;
+                case LARGE -> 0.75D;
+            };
+        }
+        return 1.0D;
+    }
+
+    public static double getWeaponSizePenalty(String weaponType, MobSize size) {
+        if (weaponType == null || weaponType.isBlank()) {
+            return 1.0D;
+        }
+        String normalized = weaponType.toLowerCase(java.util.Locale.ROOT);
+        MobSize targetSize = size == null ? MobSize.MEDIUM : size;
+        if (containsAny(normalized, "rod", "rods", "staff", "staves", "wand", "wands")) {
+            return 1.0D;
+        }
+        if (containsAny(normalized, "katar", "katars")) {
+            return switch (targetSize) {
+                case SMALL -> 0.75D;
                 case MEDIUM -> 1.0D;
                 case LARGE -> 0.75D;
             };
@@ -191,12 +213,76 @@ public final class CombatMath {
         return RoPreRenewalFormulaService.criticalChance(luk, bonus);
     }
 
+    public static double applyWeaponCriticalChanceModifier(double critChance, ItemStack weapon) {
+        double clamped = Math.max(0.0D, critChance);
+        return isKatarWeapon(weapon) ? clamped * 2.0D : clamped;
+    }
+
+    public static double applyWeaponCriticalChanceModifier(double critChance, String weaponType) {
+        double clamped = Math.max(0.0D, critChance);
+        return containsAny(weaponType, "katar", "katars") ? clamped * 2.0D : clamped;
+    }
+
     public static double computeCritDamageMultiplier(int luk, int str) {
         return 1.4D;
     }
 
     public static boolean isRangedWeapon(ItemStack weapon) {
         return weapon != null && !weapon.isEmpty() && (weapon.getItem() instanceof ProjectileWeaponItem);
+    }
+
+    public static boolean isKatarWeapon(ItemStack weapon) {
+        return hasRoWeaponFamily(weapon, "katar", "katars");
+    }
+
+    public static boolean isRodWeapon(ItemStack weapon) {
+        return hasRoWeaponFamily(weapon, "rod", "rods", "staff", "staves", "wand", "wands");
+    }
+
+    private static boolean hasRoWeaponFamily(ItemStack weapon, String... tokens) {
+        if (weapon == null || weapon.isEmpty() || tokens == null || tokens.length == 0) {
+            return false;
+        }
+        if (weapon.getTag() != null) {
+            String configured = firstString(weapon, "ragnarmmo_weapon_type", "ro_weapon_type", "weapon_type");
+            if (!configured.isBlank() && containsAny(configured, tokens)) {
+                return true;
+            }
+        }
+        if (weapon.getTags().anyMatch(tag -> containsAny(tag.location().getPath(), tokens))) {
+            return true;
+        }
+        var itemId = ForgeRegistries.ITEMS.getKey(weapon.getItem());
+        return itemId != null && containsAny(itemId.getPath(), tokens);
+    }
+
+    private static String firstString(ItemStack weapon, String... keys) {
+        var tag = weapon.getTag();
+        if (tag == null) {
+            return "";
+        }
+        for (String key : keys) {
+            if (tag.contains(key)) {
+                String value = tag.getString(key);
+                if (!value.isBlank()) {
+                    return value;
+                }
+            }
+        }
+        return "";
+    }
+
+    private static boolean containsAny(String value, String... tokens) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String normalized = value.toLowerCase(java.util.Locale.ROOT);
+        for (String token : tokens) {
+            if (token != null && !token.isBlank() && normalized.contains(token.toLowerCase(java.util.Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int getWeaponBaseASPD(ItemStack weapon) {

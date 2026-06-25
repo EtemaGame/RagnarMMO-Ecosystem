@@ -9,6 +9,7 @@ import com.etema.ragnarmmo.common.api.mobs.data.load.MobDefinitionRegistry;
 import com.etema.ragnarmmo.common.api.mobs.data.resolve.MobDefinitionResolver;
 import com.etema.ragnarmmo.common.api.mobs.profile.MobProfile;
 import com.etema.ragnarmmo.common.api.mobs.profile.MobProfileFactory;
+import com.etema.ragnarmmo.common.api.mobs.profile.VanillaMobTaxonomyDefaults;
 import com.etema.ragnarmmo.common.api.mobs.util.MobProfileEligibility;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -45,7 +46,9 @@ public final class MobProfileBootstrap {
             return Optional.of(state.profile());
         }
 
-        Optional<ResolvedMobDefinition> definition = resolveDefinition(living);
+        ResourceLocation typeId = ForgeRegistries.ENTITY_TYPES.getKey(living.getType());
+        Optional<ResolvedMobDefinition> definition = resolveDefinition(typeId)
+                .or(() -> VanillaMobTaxonomyDefaults.resolve(typeId));
         MobRank rank = definition.map(ResolvedMobDefinition::rank)
                 .filter(value -> value != null)
                 .orElseGet(() -> defaultRank(living));
@@ -58,8 +61,7 @@ public final class MobProfileBootstrap {
         return Optional.of(profile);
     }
 
-    private static Optional<ResolvedMobDefinition> resolveDefinition(LivingEntity living) {
-        ResourceLocation typeId = ForgeRegistries.ENTITY_TYPES.getKey(living.getType());
+    private static Optional<ResolvedMobDefinition> resolveDefinition(ResourceLocation typeId) {
         if (typeId == null) {
             return Optional.empty();
         }
@@ -87,7 +89,10 @@ public final class MobProfileBootstrap {
     }
 
     public static boolean isBossLike(LivingEntity living) {
-        return isVanillaBoss(living) || MobProfileProvider.get(living).resolve()
+        ResourceLocation typeId = ForgeRegistries.ENTITY_TYPES.getKey(living.getType());
+        return isVanillaBoss(living)
+                || VanillaMobTaxonomyDefaults.isBossLike(typeId)
+                || MobProfileProvider.get(living).resolve()
                 .filter(MobProfileState::isInitialized)
                 .map(state -> state.profile().rank() == MobRank.BOSS)
                 .orElse(false);

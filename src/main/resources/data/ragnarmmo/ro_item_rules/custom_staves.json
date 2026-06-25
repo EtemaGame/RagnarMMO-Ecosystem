@@ -1,10 +1,4 @@
 {
-  "ragnarmmo:staves/sunpriest_staff": {
-    "requiredBaseLevel": 8,
-    "allowedJobs": ["MAGE", "ACOLYTE"],
-    "cardSlots": 1,
-    "attributeBonuses": { "int": 1, "vit": 1 }
-  },
   "ragnarmmo:staves/verdant_crook": {
     "requiredBaseLevel": 12,
     "allowedJobs": ["MAGE", "ACOLYTE"],

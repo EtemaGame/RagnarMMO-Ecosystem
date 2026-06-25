@@ -57,6 +57,7 @@ public final class MobDefinitionResolver {
                 preferPrimary(definition.element(), template != null ? template.element() : null),
                 preferPrimary(definition.elementLevel(), template != null ? template.elementLevel() : null),
                 preferPrimary(definition.size(), template != null ? template.size() : null),
+                preferPrimary(definition.attackRange(), template != null ? template.attackRange() : null),
                 definition.ai(),
                 definition.movement(),
                 definition.lootBehavior(),
@@ -151,6 +152,7 @@ public final class MobDefinitionResolver {
         if (definition.size() == null) {
             issues.add(incomplete("size", "size is unresolved after declarative merge"));
         }
+        validateNonNegative(definition.attackRange(), "attackRange", issues);
 
         boolean canDeriveMissingCombatFields = isCompleteRoStats(definition.roStats());
         MobDirectStatsBlock directStats = definition.directStats();

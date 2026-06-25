@@ -33,18 +33,31 @@ public final class CombatPropertyModifierService {
     }
 
     public static double incomingElementReduction(Player defender, ElementType attackElement) {
+        return incomingDamageReduction(defender, null, attackElement, null);
+    }
+
+    public static double incomingDamageReduction(Player defender, String attackerRace, ElementType attackElement,
+            CombatMath.MobSize attackerSize) {
         if (defender == null || attackElement == null) {
             return 0.0D;
         }
-        double reduction = 0.0D;
+        DamageReduction reduction = DamageReduction.ZERO;
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             if (slot.getType() != EquipmentSlot.Type.ARMOR && slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND) {
                 continue;
             }
-            reduction += modifierValue(defender.getItemBySlot(slot), key("resist_element", attackElement.name()));
-            reduction += modifierValue(defender.getItemBySlot(slot), "ragnarmmo:resist_all_elements");
+            reduction = reduction.plus(incomingReduction(defender.getItemBySlot(slot), attackerRace, attackElement, attackerSize));
         }
-        return FormulaUtil.clamp(0.0D, 0.95D, reduction);
+        return reduction.reduction();
+    }
+
+    public static double incomingDamageMultiplier(Player defender, String attackerRace, ElementType attackElement,
+            CombatMath.MobSize attackerSize) {
+        return 1.0D - incomingDamageReduction(defender, attackerRace, attackElement, attackerSize);
+    }
+
+    public static double combineIncomingReductionCategories(double size, double race, double element, double special) {
+        return new DamageReduction(size, race, element, special).reduction();
     }
 
     private static DamageBonus outgoingBonus(ItemStack stack, String race, ElementType element, CombatMath.MobSize size) {
@@ -56,6 +69,18 @@ public final class CombatPropertyModifierService {
                 modifierValue(stack, key("damage_race", race)),
                 modifierValue(stack, key("damage_element", element == null ? "neutral" : element.name())),
                 modifierValue(stack, "ragnarmmo:damage_all"));
+    }
+
+    private static DamageReduction incomingReduction(ItemStack stack, String race, ElementType element, CombatMath.MobSize size) {
+        if (stack == null || stack.isEmpty()) {
+            return DamageReduction.ZERO;
+        }
+        return new DamageReduction(
+                modifierValue(stack, key("resist_size", size == null ? "unknown" : size.name())),
+                modifierValue(stack, key("resist_race", race)),
+                modifierValue(stack, key("resist_element", element == null ? "neutral" : element.name()))
+                        + modifierValue(stack, "ragnarmmo:resist_all_elements"),
+                modifierValue(stack, "ragnarmmo:resist_all"));
     }
 
     private static double modifierValue(ItemStack stack, String key) {
@@ -94,6 +119,26 @@ public final class CombatPropertyModifierService {
 
         private double multiplier() {
             return Math.max(0.0D, (1.0D + size) * (1.0D + race) * (1.0D + element) * (1.0D + special));
+        }
+    }
+
+    private record DamageReduction(double size, double race, double element, double special) {
+        private static final DamageReduction ZERO = new DamageReduction(0.0D, 0.0D, 0.0D, 0.0D);
+
+        private DamageReduction plus(DamageReduction other) {
+            if (other == null) {
+                return this;
+            }
+            return new DamageReduction(size + other.size, race + other.race, element + other.element,
+                    special + other.special);
+        }
+
+        private double reduction() {
+            double multiplier = (1.0D - FormulaUtil.clamp(0.0D, 0.95D, size))
+                    * (1.0D - FormulaUtil.clamp(0.0D, 0.95D, race))
+                    * (1.0D - FormulaUtil.clamp(0.0D, 0.95D, element))
+                    * (1.0D - FormulaUtil.clamp(0.0D, 0.95D, special));
+            return FormulaUtil.clamp(0.0D, 0.95D, 1.0D - multiplier);
         }
     }
 }

@@ -32,6 +32,13 @@ public final class RoCombatStatusService {
     public static final String IMPROVE_CONCENTRATION_LEVEL_TAG = "ragnar_improve_concentration_level";
     public static final String POISON_UNTIL_TAG = "ragnar_poison_until";
     public static final String POISON_NEXT_TICK_TAG = "ragnar_poison_next_tick";
+    public static final String FROZEN_UNTIL_TAG = "ragnar_frozen_until";
+    public static final String STONE_CURSE_UNTIL_TAG = "ragnar_stone_curse_until";
+    public static final String SILENCE_UNTIL_TAG = "ragnar_silence_until";
+    public static final String BLIND_UNTIL_TAG = "ragnar_blind_until";
+    public static final String CHAOS_UNTIL_TAG = "ragnar_chaos_until";
+    public static final String SIGHT_UNTIL_TAG = "ragnar_sight_until";
+    public static final String HIDING_UNTIL_TAG = "ragnar_hiding_until";
 
     private RoCombatStatusService() {
     }
@@ -191,6 +198,112 @@ public final class RoCombatStatusService {
         CompoundTag data = target.getPersistentData();
         data.remove(POISON_UNTIL_TAG);
         data.remove(POISON_NEXT_TICK_TAG);
+    }
+
+    public static void applyFrozen(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(FROZEN_UNTIL_TAG, until);
+    }
+
+    public static void clearFrozen(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(FROZEN_UNTIL_TAG);
+    }
+
+    public static void applyStoneCurse(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        clearFrozen(target);
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(STONE_CURSE_UNTIL_TAG, until);
+    }
+
+    public static void clearStoneCurse(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(STONE_CURSE_UNTIL_TAG);
+    }
+
+    public static void applySilence(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(SILENCE_UNTIL_TAG, until);
+    }
+
+    public static void clearSilence(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(SILENCE_UNTIL_TAG);
+    }
+
+    public static void applyBlind(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(BLIND_UNTIL_TAG, until);
+    }
+
+    public static void clearBlind(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(BLIND_UNTIL_TAG);
+    }
+
+    public static void applyChaos(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(CHAOS_UNTIL_TAG, until);
+    }
+
+    public static void clearChaos(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(CHAOS_UNTIL_TAG);
+    }
+
+    public static void applySight(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(SIGHT_UNTIL_TAG, until);
+    }
+
+    public static void applyHiding(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long until = target.level().getGameTime() + Math.max(1, durationTicks);
+        target.getPersistentData().putLong(HIDING_UNTIL_TAG, until);
+    }
+
+    public static void clearHiding(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(HIDING_UNTIL_TAG);
+    }
+
+    public static void clearSight(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(SIGHT_UNTIL_TAG);
     }
 
     public static void clearImproveConcentration(LivingEntity target) {
@@ -376,6 +489,106 @@ public final class RoCombatStatusService {
         return isActive(entity, POISON_UNTIL_TAG);
     }
 
+    public static boolean hasFrozen(LivingEntity entity) {
+        return isActive(entity, FROZEN_UNTIL_TAG);
+    }
+
+    public static boolean hasStoneCurse(LivingEntity entity) {
+        return isActive(entity, STONE_CURSE_UNTIL_TAG);
+    }
+
+    public static boolean hasSilence(LivingEntity entity) {
+        return isActive(entity, SILENCE_UNTIL_TAG);
+    }
+
+    public static boolean hasBlind(LivingEntity entity) {
+        return isActive(entity, BLIND_UNTIL_TAG);
+    }
+
+    public static boolean hasChaos(LivingEntity entity) {
+        return isActive(entity, CHAOS_UNTIL_TAG);
+    }
+
+    public static boolean hasHiding(LivingEntity entity) {
+        return isActive(entity, HIDING_UNTIL_TAG);
+    }
+
+    public static boolean blocksCast(LivingEntity entity) {
+        return hasSilence(entity);
+    }
+
+    public static double hitMultiplier(LivingEntity entity) {
+        return hasBlind(entity) ? 0.75D : 1.0D;
+    }
+
+    public static double fleeMultiplier(LivingEntity entity) {
+        return hasBlind(entity) ? 0.75D : 1.0D;
+    }
+
+    public static boolean hasSight(LivingEntity entity) {
+        return isActive(entity, SIGHT_UNTIL_TAG);
+    }
+
+    public static boolean canDetectHiding(LivingEntity observer) {
+        if (observer == null) {
+            return false;
+        }
+        if (hasSight(observer)) {
+            return true;
+        }
+        if (observer instanceof Mob mob) {
+            String path = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(mob.getType()) == null
+                    ? ""
+                    : net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(mob.getType()).getPath();
+            return mob.getMobType() == net.minecraft.world.entity.MobType.ARTHROPOD
+                    || path.contains("spider")
+                    || path.contains("enderman")
+                    || path.contains("vex")
+                    || path.contains("warden")
+                    || path.contains("wither")
+                    || path.contains("ender_dragon");
+        }
+        return false;
+    }
+
+    public static boolean revealHiding(LivingEntity target) {
+        if (!hasHiding(target)) {
+            return false;
+        }
+        clearHiding(target);
+        target.removeEffect(net.minecraft.world.effect.MobEffects.INVISIBILITY);
+        return true;
+    }
+
+    public static void tickHiding(LivingEntity entity) {
+        if (!hasHiding(entity)) {
+            return;
+        }
+        entity.setDeltaMovement(0.0D, entity.getDeltaMovement().y, 0.0D);
+        entity.hurtMarked = true;
+    }
+
+    public static void tickChaos(LivingEntity entity) {
+        if (!hasChaos(entity)) {
+            return;
+        }
+        if (entity instanceof Mob mob) {
+            mob.setTarget(null);
+            if (entity.level().getGameTime() % 20L == 0L) {
+                double dx = (entity.getRandom().nextDouble() - 0.5D) * 0.35D;
+                double dz = (entity.getRandom().nextDouble() - 0.5D) * 0.35D;
+                mob.getNavigation().moveTo(entity.getX() + dx * 6.0D, entity.getY(), entity.getZ() + dz * 6.0D, 0.8D);
+            }
+            return;
+        }
+        if (entity.level().getGameTime() % 10L == 0L) {
+            double dx = (entity.getRandom().nextDouble() - 0.5D) * 0.18D;
+            double dz = (entity.getRandom().nextDouble() - 0.5D) * 0.18D;
+            entity.push(dx, 0.0D, dz);
+            entity.hurtMarked = true;
+        }
+    }
+
     public static void tickPoison(LivingEntity entity) {
         if (!hasPoison(entity)) {
             return;
@@ -436,6 +649,27 @@ public final class RoCombatStatusService {
         }
         if (isExpired(entity, POISON_UNTIL_TAG)) {
             clearPoison(entity);
+        }
+        if (isExpired(entity, FROZEN_UNTIL_TAG)) {
+            clearFrozen(entity);
+        }
+        if (isExpired(entity, STONE_CURSE_UNTIL_TAG)) {
+            clearStoneCurse(entity);
+        }
+        if (isExpired(entity, SILENCE_UNTIL_TAG)) {
+            clearSilence(entity);
+        }
+        if (isExpired(entity, BLIND_UNTIL_TAG)) {
+            clearBlind(entity);
+        }
+        if (isExpired(entity, CHAOS_UNTIL_TAG)) {
+            clearChaos(entity);
+        }
+        if (isExpired(entity, SIGHT_UNTIL_TAG)) {
+            clearSight(entity);
+        }
+        if (isExpired(entity, HIDING_UNTIL_TAG)) {
+            clearHiding(entity);
         }
         if (isExpired(entity, OVER_THRUST_UNTIL_TAG)) {
             clearOverThrust(entity);

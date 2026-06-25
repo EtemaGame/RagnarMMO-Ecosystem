@@ -26,6 +26,11 @@ public enum CombatRejectReason {
     ACTOR_REMOVED,
 
     /**
+     * The actor is under a status that forbids this action.
+     */
+    ACTOR_STATUS_BLOCKED,
+
+    /**
      * No persistent combat state found for the actor.
      */
     MISSING_ACTOR_STATE,

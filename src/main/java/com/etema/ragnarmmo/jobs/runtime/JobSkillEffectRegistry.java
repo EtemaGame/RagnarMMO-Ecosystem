@@ -8,10 +8,15 @@ import com.etema.ragnarmmo.combat.aggro.AggroManager;
 import com.etema.ragnarmmo.combat.element.CombatPropertyResolver;
 import com.etema.ragnarmmo.combat.element.ElementType;
 import com.etema.ragnarmmo.combat.formula.AcolyteSkillFormulaService;
+import com.etema.ragnarmmo.combat.formula.MageSkillFormulaService;
 import com.etema.ragnarmmo.combat.formula.ThiefSkillFormulaService;
+import com.etema.ragnarmmo.combat.ground.GroundCellService;
+import com.etema.ragnarmmo.combat.ground.GroundCellType;
+import com.etema.ragnarmmo.combat.ground.ThunderStormScheduler;
 import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import com.etema.ragnarmmo.common.api.mobs.runtime.MobProfileBootstrap;
 import com.etema.ragnarmmo.items.UtilityItems;
+import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Items;
@@ -21,7 +26,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -85,7 +89,6 @@ public final class JobSkillEffectRegistry {
             RoCombatStatusService.applyIncreaseAgi(target, duration,
                     context.definition().getLevelInt("agi_bonus", context.level(),
                             AcolyteSkillFormulaService.agiBonus(context.level())));
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, duration, 0, false, true, true));
             particles(context.player(), ParticleTypes.CLOUD, 12, 0.35D, 0.2D, 0.35D);
             return true;
         });
@@ -98,9 +101,7 @@ public final class JobSkillEffectRegistry {
         }).orElse(false));
         register(id("play_dead"), context -> {
             int duration = Math.max(60, context.definition().cooldownTicks() / 2);
-            context.player().addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, duration, 0, false, false, true));
-            context.player().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, 6, false, false, true));
-            context.player().addEffect(new MobEffectInstance(MobEffects.WEAKNESS, duration, 1, false, false, true));
+            RoCombatStatusService.applyHiding(context.player(), duration);
             AABB area = context.player().getBoundingBox().inflate(12.0D);
             for (Mob mob : context.player().level().getEntitiesOfClass(Mob.class, area, mob -> mob.isAlive())) {
                 if (mob.getTarget() == context.player()) {
@@ -191,7 +192,6 @@ public final class JobSkillEffectRegistry {
                         context.definition().getLevelInt("stat_bonus", context.level(),
                                 AcolyteSkillFormulaService.blessingStatBonus(context.level())));
             }
-            target.removeEffect(MobEffects.WITHER);
             particles(target, ParticleTypes.ENCHANT, 24, 0.45D, 0.8D, 0.45D);
             target.level().playSound(null, target, SoundEvents.BEACON_POWER_SELECT,
                     SoundSource.PLAYERS, 0.8F, 1.5F);
@@ -208,26 +208,27 @@ public final class JobSkillEffectRegistry {
             }
             return any;
         }).orElse(false));
-        register(id("arrow_shower"), context -> context.target().map(center -> {
+        register(id("arrow_shower"), context -> {
             if (!requireBowAndArrow(context)) {
                 return false;
             }
-            double radius = context.definition().getLevelDouble("aoe_radius", context.level(), 2.5D);
+            BlockPos center = groundTarget(context).orElse(null);
+            if (center == null || !(context.player().level() instanceof ServerLevel level)) {
+                return false;
+            }
+            int radius = Math.max(1, (int) Math.floor(context.definition().getLevelDouble("aoe_radius", context.level(), 1.5D)));
             int hits = 0;
-            for (LivingEntity target : center.level().getEntitiesOfClass(
-                    LivingEntity.class,
-                    center.getBoundingBox().inflate(radius),
-                    entity -> entity.isAlive() && entity != context.player())) {
+            for (LivingEntity target : GroundCellService.livingEntitiesInCells(level, center, radius, context.player())) {
                 if (applyCombatSkillDamage(context, target)) {
-                    knockAway(context.player(), target,
-                            context.definition().getLevelDouble("knockback_strength", context.level(), 0.25D));
+                    knockAwayFromPos(Vec3.atCenterOf(center), target,
+                            context.definition().getLevelDouble("knockback_cells", context.level(), 2.0D) * 0.35D);
                     hits++;
                 }
             }
-            particles(center, ParticleTypes.CRIT, 24, radius * 0.3D, 0.5D, radius * 0.3D);
-            center.level().playSound(null, center, SoundEvents.ARROW_HIT, SoundSource.PLAYERS, 0.8F, 1.2F);
+            particlesAt(level, center, ParticleTypes.CRIT, 24, radius * 0.35D, 0.5D, radius * 0.35D);
+            level.playSound(null, center, SoundEvents.ARROW_HIT, SoundSource.PLAYERS, 0.8F, 1.2F);
             return hits > 0;
-        }).orElse(false));
+        });
         registerBolt("fire_bolt", ParticleTypes.FLAME, true);
         registerBolt("cold_bolt", ParticleTypes.SNOWFLAKE, false);
         registerBolt("lightning_bolt", ParticleTypes.ELECTRIC_SPARK, false);
@@ -250,13 +251,10 @@ public final class JobSkillEffectRegistry {
         }).orElse(false));
         register(id("hiding"), context -> {
             int duration = context.definition().getLevelInt("duration_ticks", context.level(), 600);
-            int slowness = context.definition().getLevelInt("slowness_amplifier", context.level(), 2);
-            context.player().addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, duration, 0, false, false, true));
-            if (slowness >= 0) {
-                context.player().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, slowness, false, false, true));
-            }
+            RoCombatStatusService.applyHiding(context.player(), duration);
             AABB area = context.player().getBoundingBox().inflate(10.0D);
-            for (Mob mob : context.player().level().getEntitiesOfClass(Mob.class, area, mob -> mob.getTarget() == context.player())) {
+            for (Mob mob : context.player().level().getEntitiesOfClass(Mob.class, area,
+                    mob -> mob.getTarget() == context.player() && !RoCombatStatusService.canDetectHiding(mob))) {
                 mob.setTarget(null);
             }
             particles(context.player(), ParticleTypes.SMOKE, 18, 0.35D, 0.2D, 0.35D);
@@ -291,20 +289,17 @@ public final class JobSkillEffectRegistry {
             int reduction = context.definition().getLevelInt("agi_reduction", context.level(),
                     AcolyteSkillFormulaService.agiBonus(context.level()));
             RoCombatStatusService.applyDecreaseAgi(target, duration, reduction);
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, duration, 0, false, true, true));
             particles(target, ParticleTypes.ASH, 16, 0.3D, 0.5D, 0.3D);
             return true;
         }).orElse(false));
         register(id("fire_ball"), context -> context.target().map(center -> {
             double radius = context.definition().getLevelDouble("splash_radius", context.level(), 2.5D);
-            int burn = context.definition().getLevelInt("burn_seconds", context.level(), 3);
             int hits = 0;
             for (LivingEntity target : center.level().getEntitiesOfClass(
                     LivingEntity.class,
                     center.getBoundingBox().inflate(radius),
                     entity -> entity.isAlive() && entity != context.player())) {
                 if (applyCombatSkillDamage(context, target)) {
-                    target.setSecondsOnFire(burn);
                     hits++;
                 }
             }
@@ -334,12 +329,6 @@ public final class JobSkillEffectRegistry {
             particles(context.player(), ParticleTypes.SPLASH, 18, 0.35D, 0.25D, 0.35D);
             return true;
         });
-        register(id("back_slide"), context -> {
-            Vec3 back = context.player().getLookAngle().normalize().scale(-3.0D);
-            context.player().teleportTo(context.player().getX() + back.x, context.player().getY(), context.player().getZ() + back.z);
-            particles(context.player(), ParticleTypes.CLOUD, 12, 0.25D, 0.15D, 0.25D);
-            return true;
-        });
         register(id("endure"), context -> {
             int duration = context.definition().getLevelInt("duration_ticks", context.level(), 120 + context.level() * 20);
             RoCombatStatusService.applyEndure(
@@ -350,29 +339,42 @@ public final class JobSkillEffectRegistry {
             particles(context.player(), ParticleTypes.CRIT, 14, 0.3D, 0.5D, 0.3D);
             return true;
         });
-        register(id("fire_wall"), context -> context.target().map(center -> {
-            double radius = 2.0D;
-            int duration = context.definition().getLevelInt("duration_ticks", context.level(), 80 + context.level() * 20);
-            int hits = 0;
-            for (LivingEntity target : center.level().getEntitiesOfClass(LivingEntity.class,
-                    center.getBoundingBox().inflate(radius), entity -> entity.isAlive() && entity != context.player())) {
-                if (applyCombatSkillDamage(context, target)) {
-                    target.setSecondsOnFire(Math.max(2, duration / 40));
-                    hits++;
-                }
+        register(id("fire_wall"), context -> {
+            BlockPos center = groundTarget(context).orElse(null);
+            if (center == null || !(context.player().level() instanceof ServerLevel level)) {
+                return false;
             }
-            particles(center, ParticleTypes.FLAME, 36, radius * 0.35D, 0.25D, radius * 0.35D);
-            return hits > 0;
-        }).orElse(false));
+            GroundCellService.placeFireWall(
+                    level,
+                    context.player(),
+                    center,
+                    context.definition().getLevelInt("segment_count", context.level(), 3),
+                    context.definition().getLevelInt("duration_ticks", context.level(), 100),
+                    context.definition().getLevelInt("max_hits", context.level(), 5),
+                    context.level());
+            particlesAt(level, center, ParticleTypes.FLAME, 24, 1.0D, 0.2D, 1.0D);
+            level.playSound(null, center, SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.7F, 1.2F);
+            return true;
+        });
         register(id("frost_diver"), context -> context.target().map(target -> {
             boolean hit = applyCombatSkillDamage(context, target);
-            if (hit) {
-                target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
-                        context.definition().getLevelInt("duration_ticks", context.level(), 80 + context.level() * 20),
-                        6, false, true, true));
+            boolean frozen = false;
+            if (hit
+                    && CombatPropertyResolver.getDefensiveElement(target) != ElementType.UNDEAD
+                    && !MobProfileBootstrap.isBossLike(target)
+                    && context.player().getRandom().nextDouble() < context.definition().getLevelDouble(
+                            "status_chance",
+                            context.level(),
+                            MageSkillFormulaService.frostDiverFreezeChance(context.level()))) {
+                RoCombatStatusService.applyFrozen(target,
+                        context.definition().getLevelInt("duration_ticks", context.level(),
+                                MageSkillFormulaService.frostDiverDurationTicks(context.level())));
+                frozen = true;
+            }
+            if (hit || frozen) {
                 particles(target, ParticleTypes.SNOWFLAKE, 20, 0.3D, 0.55D, 0.3D);
             }
-            return hit;
+            return hit || frozen;
         }).orElse(false));
         register(id("improve_concentration"), context -> {
             int duration = context.definition().getLevelInt("duration_ticks", context.level(), 1200 + context.level() * 200);
@@ -381,16 +383,24 @@ public final class JobSkillEffectRegistry {
                     context.player().getBoundingBox().inflate(
                             context.definition().getLevelDouble("reveal_radius", context.level(), 3.0D)),
                     entity -> entity.isAlive() && entity != context.player())) {
-                target.removeEffect(MobEffects.INVISIBILITY);
-                target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0, false, true, true));
+                RoCombatStatusService.revealHiding(target);
             }
             particles(context.player(), ParticleTypes.CRIT, 16, 0.35D, 0.5D, 0.35D);
             return true;
         });
         register(id("napalm_beat"), context -> context.target().map(center -> magicSplash(context, center, 1.8D, 70.0D + context.level() * 8.0D, ParticleTypes.WITCH)).orElse(false));
         register(id("pneuma"), context -> {
-            context.player().sendSystemMessage(net.minecraft.network.chat.Component.literal("Pneuma needs ground-effect combat cells."));
-            return false;
+            BlockPos center = groundTarget(context).orElse(null);
+            if (center == null || !(context.player().level() instanceof ServerLevel level)) {
+                return false;
+            }
+            int radius = Math.max(1, (int) Math.floor(context.definition().getLevelDouble("aoe_radius", context.level(), 1.0D)));
+            GroundCellService.placeArea(level, center, radius, GroundCellType.PNEUMA, context.player(),
+                    context.definition().getLevelInt("duration_ticks", context.level(), 200),
+                    -1,
+                    context.level());
+            particlesAt(level, center, ParticleTypes.CLOUD, 28, radius * 0.35D, 0.45D, radius * 0.35D);
+            return true;
         });
         register(id("ruwach"), context -> {
             int revealed = 0;
@@ -398,9 +408,7 @@ public final class JobSkillEffectRegistry {
                     context.player().getBoundingBox().inflate(
                             context.definition().getLevelDouble("reveal_radius", context.level(), 2.0D)),
                     entity -> entity.isAlive() && entity != context.player())) {
-                boolean hidden = target.hasEffect(MobEffects.INVISIBILITY);
-                target.removeEffect(MobEffects.INVISIBILITY);
-                target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0, false, true, true));
+                boolean hidden = RoCombatStatusService.revealHiding(target);
                 if (hidden) {
                     applyCombatSkillDamage(context, target);
                     revealed++;
@@ -409,15 +417,34 @@ public final class JobSkillEffectRegistry {
             particles(context.player(), ParticleTypes.END_ROD, 28, 1.0D, 0.5D, 1.0D);
             return true;
         });
-        register(id("safety_wall"), context -> selfBuff(context, MobEffects.DAMAGE_RESISTANCE, "duration_ticks", 160, 2, ParticleTypes.ENCHANTED_HIT));
+        register(id("safety_wall"), context -> {
+            BlockPos center = groundTarget(context).orElse(null);
+            if (center == null || !(context.player().level() instanceof ServerLevel level)) {
+                return false;
+            }
+            if (!context.player().isCreative() && !UtilityItems.consumeBlueGemstone(context.player())) {
+                context.player().sendSystemMessage(net.minecraft.network.chat.Component.literal("Safety Wall requires Blue Gemstone."));
+                return false;
+            }
+            GroundCellService.placeSingle(level, center, GroundCellType.SAFETY_WALL, context.player(),
+                    context.definition().getLevelInt("duration_ticks", context.level(), 100),
+                    context.definition().getLevelInt("max_hits", context.level(), 2),
+                    context.level());
+            particlesAt(level, center, ParticleTypes.ENCHANT, 24, 0.35D, 0.8D, 0.35D);
+            return true;
+        });
         register(id("sight"), context -> {
+            RoCombatStatusService.applySight(context.player(),
+                    context.definition().getLevelInt("duration_ticks", context.level(), 200));
             int revealed = 0;
             for (LivingEntity target : context.player().level().getEntitiesOfClass(LivingEntity.class,
                     context.player().getBoundingBox().inflate(
-                            context.definition().getLevelDouble("aoe_radius", context.level(), 15.0D)),
+                            context.definition().getLevelDouble("aoe_radius", context.level(), 3.5D)),
                     entity -> entity.isAlive() && entity != context.player())) {
-                target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 160, 0, false, true, true));
-                revealed++;
+                boolean hidden = RoCombatStatusService.revealHiding(target);
+                if (hidden || RoCombatStatusService.hasFrozen(target) || RoCombatStatusService.hasStoneCurse(target)) {
+                    revealed++;
+                }
             }
             particles(context.player(), ParticleTypes.FLAME, 24, 0.8D, 0.3D, 0.8D);
             return revealed >= 0;
@@ -454,10 +481,14 @@ public final class JobSkillEffectRegistry {
             return true;
         }).orElse(false));
         register(id("stone_curse"), context -> context.target().map(target -> {
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
-                    context.definition().getLevelInt("duration_ticks", context.level(), 100 + context.level() * 20),
-                    8, false, true, true));
-            target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100 + context.level() * 20, 1, false, true, true));
+            double chance = context.definition().getLevelDouble("success_chance", context.level(),
+                    MageSkillFormulaService.stoneCurseBaseChance(context.level()));
+            if (context.player().getRandom().nextDouble() > chance) {
+                particles(target, ParticleTypes.ASH, 8, 0.2D, 0.3D, 0.2D);
+                return false;
+            }
+            RoCombatStatusService.applyStoneCurse(target,
+                    context.definition().getLevelInt("effect_duration_ticks", context.level(), 400));
             particles(target, ParticleTypes.ASH, 18, 0.25D, 0.45D, 0.25D);
             return true;
         }).orElse(false));
@@ -475,7 +506,24 @@ public final class JobSkillEffectRegistry {
             particles(context.player(), ParticleTypes.PORTAL, 32, 0.4D, 0.8D, 0.4D);
             return true;
         });
-        register(id("thunder_storm"), context -> context.target().map(center -> magicSplash(context, center, 3.0D, 80.0D + context.level() * 10.0D, ParticleTypes.ELECTRIC_SPARK)).orElse(false));
+        register(id("thunder_storm"), context -> {
+            BlockPos center = groundTarget(context).orElse(null);
+            if (center == null || !(context.player().level() instanceof ServerLevel level)) {
+                return false;
+            }
+            int radius = Math.max(1, (int) Math.floor(context.definition().getLevelDouble("aoe_radius", context.level(), 2.5D)));
+            ThunderStormScheduler.schedule(
+                    level,
+                    context.player(),
+                    center,
+                    radius,
+                    context.level(),
+                    context.definition().getLevelInt("hit_count", context.level(), context.level()),
+                    context.definition().getLevelInt("hit_spacing_ticks", context.level(), 5));
+            particlesAt(level, center, ParticleTypes.ELECTRIC_SPARK, 36, radius * 0.35D, 0.8D, radius * 0.35D);
+            level.playSound(null, center, SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.PLAYERS, 0.5F, 1.8F);
+            return true;
+        });
         register(id("warp_portal"), context -> {
             if (UtilityItems.countItem(context.player(), UtilityItems.BLUE_GEMSTONE.get()) <= 0) {
                 context.player().sendSystemMessage(net.minecraft.network.chat.Component.literal("Warp Portal requires Blue Gemstone."));
@@ -485,19 +533,22 @@ public final class JobSkillEffectRegistry {
             return false;
         });
         register(id("identify"), context -> {
-            context.player().sendSystemMessage(net.minecraft.network.chat.Component.literal("Identify inspected the held item."));
+            context.player().sendSystemMessage(net.minecraft.network.chat.Component.literal("Item Appraisal needs unidentified item support."));
             particles(context.player(), ParticleTypes.ENCHANT, 10, 0.25D, 0.35D, 0.25D);
-            return true;
+            return false;
         });
-        register(id("pushcart"), context -> selfBuff(context, MobEffects.MOVEMENT_SLOWDOWN, "duration_ticks", 1200, 0, ParticleTypes.HAPPY_VILLAGER));
+        register(id("pushcart"), context -> merchantPlaceholder(context, "Pushcart needs rented cart inventory support."));
         register(id("mammonite"), context -> context.target().map(target -> {
+            int zenyCost = context.definition().getLevelInt("zeny_cost", context.level(),
+                    com.etema.ragnarmmo.combat.formula.MerchantSkillFormulaService.mammoniteZenyCost(context.level()));
+            context.player().sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "Mammonite zeny cost pending economy rewrite: " + zenyCost + "z."));
             boolean hit = applyCombatSkillDamage(context, target);
             if (hit) {
                 particles(target, ParticleTypes.CRIT, 18, 0.25D, 0.35D, 0.25D);
             }
             return hit;
         }).orElse(false));
-        register(id("buying_store"), context -> merchantPlaceholder(context, "Buying Store requires custom merchant menus."));
         register(id("vending"), context -> merchantPlaceholder(context, "Vending requires custom merchant menus."));
     }
 
@@ -519,9 +570,6 @@ public final class JobSkillEffectRegistry {
         register(id(path), context -> context.target().map(target -> {
             int hits = context.definition().getLevelInt("hit_count", context.level(), context.level());
             boolean any = applyCombatSkillDamage(context, target);
-            if (ignite) {
-                target.setSecondsOnFire(Math.max(1, context.level() / 2));
-            }
             particles(target, particle, 10 + hits * 2, 0.25D, 0.55D, 0.25D);
             target.level().playSound(null, target, ignite ? SoundEvents.BLAZE_SHOOT : SoundEvents.AMETHYST_BLOCK_HIT,
                     SoundSource.PLAYERS, 0.75F, ignite ? 1.5F : 1.1F);
@@ -530,10 +578,11 @@ public final class JobSkillEffectRegistry {
     }
 
     private static void clearNegativeEffects(LivingEntity target) {
-        target.removeEffect(MobEffects.POISON);
-        target.removeEffect(MobEffects.WITHER);
         target.removeEffect(MobEffects.BLINDNESS);
         target.removeEffect(MobEffects.CONFUSION);
+        RoCombatStatusService.clearBlind(target);
+        RoCombatStatusService.clearChaos(target);
+        RoCombatStatusService.clearSilence(target);
     }
 
     private static void particles(LivingEntity entity, net.minecraft.core.particles.ParticleOptions particle,
@@ -542,6 +591,12 @@ public final class JobSkillEffectRegistry {
             level.sendParticles(particle, entity.getX(), entity.getY() + entity.getBbHeight() * 0.6D, entity.getZ(),
                     count, dx, dy, dz, 0.04D);
         }
+    }
+
+    private static void particlesAt(ServerLevel level, BlockPos pos, net.minecraft.core.particles.ParticleOptions particle,
+            int count, double dx, double dy, double dz) {
+        level.sendParticles(particle, pos.getX() + 0.5D, pos.getY() + 0.6D, pos.getZ() + 0.5D,
+                count, dx, dy, dz, 0.04D);
     }
 
     private static void knockAway(LivingEntity source, LivingEntity target, double strength) {
@@ -554,13 +609,19 @@ public final class JobSkillEffectRegistry {
         target.hurtMarked = true;
     }
 
-    private static boolean selfBuff(JobSkillContext context, net.minecraft.world.effect.MobEffect effect,
-            String durationKey, int fallbackDuration, int amplifier,
-            net.minecraft.core.particles.ParticleOptions particle) {
-        int duration = context.definition().getLevelInt(durationKey, context.level(), fallbackDuration);
-        context.player().addEffect(new MobEffectInstance(effect, duration, Math.max(0, amplifier), false, true, true));
-        particles(context.player(), particle, 18, 0.4D, 0.5D, 0.4D);
-        return true;
+    private static void knockAwayFromPos(Vec3 source, LivingEntity target, double strength) {
+        Vec3 delta = target.position().subtract(source);
+        if (delta.lengthSqr() < 1.0E-4D) {
+            delta = new Vec3(0.0D, 0.0D, 1.0D);
+        }
+        Vec3 push = delta.normalize().scale(strength);
+        target.push(push.x, 0.18D, push.z);
+        target.hurtMarked = true;
+    }
+
+    private static Optional<BlockPos> groundTarget(JobSkillContext context) {
+        return context.groundTarget()
+                .or(() -> context.target().map(LivingEntity::blockPosition));
     }
 
     private static boolean magicSplash(JobSkillContext context, LivingEntity center, double radius, double percent,

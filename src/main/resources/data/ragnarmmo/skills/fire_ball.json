@@ -31,17 +31,26 @@
     "reference": {
         "notes": "Fire Ball: 80%-170% MATK, 25 SP, 1.5 sec cast/skill delay at Lv1-5, 1.0 sec at Lv6-10."
     },
+    "combat": {
+        "damage_type": "magical",
+        "range_type": "magic",
+        "element": "fire",
+        "element_policy": "skill",
+        "hit_policy": "always_hit",
+        "defense_policy": "normal",
+        "multi_hit_policy": "single"
+    },
     "level_data": {
-        "1": { "sp_cost": 25, "damage_percent": 80, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
-        "2": { "sp_cost": 25, "damage_percent": 90, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
-        "3": { "sp_cost": 25, "damage_percent": 100, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
-        "4": { "sp_cost": 25, "damage_percent": 110, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
-        "5": { "sp_cost": 25, "damage_percent": 120, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
-        "6": { "sp_cost": 25, "damage_percent": 130, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
-        "7": { "sp_cost": 25, "damage_percent": 140, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
-        "8": { "sp_cost": 25, "damage_percent": 150, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
-        "9": { "sp_cost": 25, "damage_percent": 160, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
-        "10": { "sp_cost": 25, "damage_percent": 170, "splash_ratio": 0.75, "splash_radius": 2.5, "burn_seconds": 3, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 }
+        "1": { "sp_cost": 25, "damage_percent": 80, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 25, "damage_percent": 90, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
+        "3": { "sp_cost": 25, "damage_percent": 100, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
+        "4": { "sp_cost": 25, "damage_percent": 110, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
+        "5": { "sp_cost": 25, "damage_percent": 120, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 30, "cast_delay_ticks": 30, "cooldown_ticks": 0 },
+        "6": { "sp_cost": 25, "damage_percent": 130, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "7": { "sp_cost": 25, "damage_percent": 140, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "8": { "sp_cost": 25, "damage_percent": 150, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "9": { "sp_cost": 25, "damage_percent": 160, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
+        "10": { "sp_cost": 25, "damage_percent": 170, "splash_radius": 2.5, "range": 9, "cast_time_ticks": 20, "cast_delay_ticks": 20, "cooldown_ticks": 0 }
     },
     "effect_class": "com.etema.ragnarmmo.skills.job.mage.FireBallSkillEffect"
 }

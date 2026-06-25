@@ -8,6 +8,7 @@ import com.etema.ragnarmmo.common.api.stats.StatAttributes;
 import com.etema.ragnarmmo.common.api.stats.StatKeys;
 import com.etema.ragnarmmo.combat.formula.AcolyteSkillFormulaService;
 import com.etema.ragnarmmo.combat.formula.ArcherSkillFormulaService;
+import com.etema.ragnarmmo.combat.formula.WeaponAspdTableService;
 import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -33,7 +34,7 @@ public final class CoreDerivedStatsCalculator {
         applyMagicalOffense(derived, intel);
         applyDefense(player, derived, vit, agi, intel, level);
         applyResources(derived, vit, intel, level, stats);
-        applyTiming(derived, agi, dex);
+        applyTiming(player, derived, agi, dex);
         applyExtendedAttributes(player, derived);
 
         MinecraftForge.EVENT_BUS.post(new StatComputeEvent(player, stats, derived));
@@ -58,7 +59,8 @@ public final class CoreDerivedStatsCalculator {
         derived.physicalAttack = statusAtk;
         derived.physicalAttackMin = Math.max(0.0D, damageVarianceFloor(statusAtk, dex, luk));
         derived.physicalAttackMax = statusAtk;
-        derived.accuracy = RoPreRenewalFormulaService.hit(dex, level, 0.0D);
+        derived.accuracy = RoPreRenewalFormulaService.hit(dex, level, 0.0D)
+                * RoCombatStatusService.hitMultiplier(player);
         derived.criticalChance = RoPreRenewalFormulaService.criticalChance(luk, critChanceBonus(player));
         derived.criticalDamageMultiplier = 1.4D + critDamageBonus(player);
         derived.perfectDodge = RoPreRenewalFormulaService.perfectDodge(luk);
@@ -82,7 +84,8 @@ public final class CoreDerivedStatsCalculator {
         derived.hardMagicDefense = RoCombatStatusService.endureMdefBonus(player);
         derived.magicDefense = derived.softMagicDefense;
         derived.magicDamageReduction = 0.0D;
-        derived.flee = RoPreRenewalFormulaService.flee(agi, level, 0.0D);
+        derived.flee = RoPreRenewalFormulaService.flee(agi, level, 0.0D)
+                * RoCombatStatusService.fleeMultiplier(player);
     }
 
     private static void applyResources(DerivedStats derived, int vit, int intel, int level, IPlayerStats stats) {
@@ -94,8 +97,9 @@ public final class CoreDerivedStatsCalculator {
         derived.manaRegenPerSecond = derived.spRegenPerSecond;
     }
 
-    private static void applyTiming(DerivedStats derived, int agi, int dex) {
-        int aspdRo = RoPreRenewalFormulaService.aspdRo(DEFAULT_WEAPON_ASPD, false, agi, dex, 0.0D);
+    private static void applyTiming(ServerPlayer player, DerivedStats derived, int agi, int dex) {
+        int baseAspd = player != null ? WeaponAspdTableService.baseAspd(player, player.getMainHandItem()) : DEFAULT_WEAPON_ASPD;
+        int aspdRo = RoPreRenewalFormulaService.aspdRo(baseAspd, false, agi, dex, 0.0D);
         double attacksPerSecond = RoPreRenewalFormulaService.aspdToAttacksPerSecond(aspdRo);
         derived.attackSpeed = aspdRo;
         derived.globalCooldown = attacksPerSecond > 0.0D ? 1.0D / attacksPerSecond : 0.0D;

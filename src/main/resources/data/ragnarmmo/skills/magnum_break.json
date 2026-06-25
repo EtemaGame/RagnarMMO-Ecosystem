@@ -29,6 +29,15 @@
     "reference": {
         "notes": "Magnum Break: 120%-300% ATK, 30 SP, 20-16 HP cost, 110%-200% accuracy by level, 10 sec fire bonus after cast."
     },
+    "combat": {
+        "damage_type": "physical",
+        "range_type": "melee",
+        "element": "fire",
+        "element_policy": "skill",
+        "hit_policy": "basic_attack",
+        "defense_policy": "normal",
+        "multi_hit_policy": "single"
+    },
     "level_data": {
         "1": { "sp_cost": 30, "damage_percent": 120, "hp_cost": 20, "accuracy_bonus": 10, "aoe_radius": 2.5, "knockback_strength": 0.55, "fire_bonus_percent": 20, "buff_duration_ticks": 200, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },
         "2": { "sp_cost": 30, "damage_percent": 140, "hp_cost": 20, "accuracy_bonus": 20, "aoe_radius": 2.5, "knockback_strength": 0.55, "fire_bonus_percent": 20, "buff_duration_ticks": 200, "cast_time_ticks": 0, "cast_delay_ticks": 40, "cooldown_ticks": 0 },

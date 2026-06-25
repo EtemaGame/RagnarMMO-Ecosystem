@@ -23,6 +23,7 @@ public record SkillDefinition(
         String texture,
         Map<ResourceLocation, Integer> requirements,
         Map<Integer, Map<String, Double>> levelData,
+        Map<Integer, Map<String, String>> levelStringData,
         Set<JobType> jobs) implements ISkillDefinition {
     @Override public ResourceLocation getId() { return id; }
     @Override public String getDisplayName() { return displayName; }
@@ -39,5 +40,6 @@ public record SkillDefinition(
     public String texture() { return texture; }
     @Override public Map<ResourceLocation, Integer> getRequirements() { return requirements; }
     @Override public Map<Integer, Map<String, Double>> getLevelDataMap() { return levelData; }
+    @Override public Map<Integer, Map<String, String>> getLevelStringDataMap() { return levelStringData; }
     @Override public Set<JobType> getJobs() { return jobs; }
 }

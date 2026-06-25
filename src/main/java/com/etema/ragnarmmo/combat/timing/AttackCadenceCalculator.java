@@ -6,9 +6,9 @@ import com.etema.ragnarmmo.common.api.stats.StatKeys;
 import com.etema.ragnarmmo.combat.formula.AspdFormulaService;
 import com.etema.ragnarmmo.combat.formula.AcolyteSkillFormulaService;
 import com.etema.ragnarmmo.combat.formula.ArcherSkillFormulaService;
+import com.etema.ragnarmmo.combat.formula.WeaponAspdTableService;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.ShieldItem;
 
 public final class AttackCadenceCalculator {
@@ -23,7 +23,8 @@ public final class AttackCadenceCalculator {
         boolean effectiveOffHand = offHand && AttackHandResolver.isValidAttackHand(player, true);
         int agi = stat(player, StatKeys.AGI);
         int dex = stat(player, StatKeys.DEX);
-        int aspd = AspdFormulaService.aspdRo(baseWeaponAspd(effectiveOffHand ? player.getOffhandItem() : player.getMainHandItem()),
+        int aspd = AspdFormulaService.aspdRo(
+                WeaponAspdTableService.baseAspd(player, effectiveOffHand ? player.getOffhandItem() : player.getMainHandItem()),
                 hasShield(player, effectiveOffHand), agi, dex, effectiveOffHand ? -8.0D : 0.0D);
         double aps = AspdFormulaService.attacksPerSecond(aspd);
         return Double.isFinite(aps) && aps > 0.0D ? aps : 1.0D;
@@ -44,12 +45,6 @@ public final class AttackCadenceCalculator {
                         + AcolyteSkillFormulaService.statusStatModifier(player, key)
                         + ArcherSkillFormulaService.statusStatModifier(player, key))
                 : 1;
-    }
-
-    private static int baseWeaponAspd(ItemStack weapon) {
-        return weapon != null && weapon.getItem() instanceof ProjectileWeaponItem
-                ? 145
-                : 156;
     }
 
     private static boolean hasShield(Player player, boolean offHandAttack) {

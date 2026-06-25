@@ -27,6 +27,15 @@
     "reference": {
         "notes": "Ruwach: RO_ADAPTED hidden reveal pulse with holy damage against revealed enemies."
     },
+    "combat": {
+        "damage_type": "magical",
+        "range_type": "magic",
+        "element": "holy",
+        "element_policy": "skill",
+        "hit_policy": "always_hit",
+        "defense_policy": "normal",
+        "multi_hit_policy": "single"
+    },
     "level_data": {
         "1": { "sp_cost": 10, "damage_percent": 145, "reveal_radius": 2, "duration_ticks": 200, "glow_duration_ticks": 200, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 }
     },

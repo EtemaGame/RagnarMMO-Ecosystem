@@ -21,6 +21,7 @@ public record ResolvedMobDefinition(
         @Nullable String element,
         @Nullable Integer elementLevel,
         @Nullable String size,
+        @Nullable Integer attackRange,
         @Nullable RagnarAiFlags ai,
         @Nullable RagnarMovementConfig movement,
         @Nullable RagnarLootBehavior lootBehavior,

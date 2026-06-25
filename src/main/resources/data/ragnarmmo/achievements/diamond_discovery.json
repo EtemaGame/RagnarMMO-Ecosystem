@@ -6,7 +6,7 @@
     "trigger_id": "minecraft:diamond",
     "required_amount": 1,
     "points": 50,
-    "title": "title.ragnarmmo.treasure_hunter",
+    "title": "title.ragnarmmo.treasure_seeker",
     "rewards": {
         "minecraft:experience_bottle": 5
     }

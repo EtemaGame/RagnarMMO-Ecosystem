@@ -1,0 +1,11 @@
+{
+    "id": "turtle_card",
+    "displayName": "Turtle Card",
+    "mobId": "minecraft:turtle",
+    "equipType": "armor",
+    "modifiers": {
+        "ragnarmmo:vit": 1.0
+    },
+    "dropRate": 0.02,
+    "modelId": 80
+}

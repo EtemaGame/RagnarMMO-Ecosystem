@@ -23,19 +23,19 @@
     },
     "reference": {
         "source_name": "RagnarMMO Pre-Renewal Port Policy",
-        "notes": "MC_INSPIRED: marks the cart as a personal shop; broadcast radius and shop slots are explicit tuning."
+        "notes": "Vending: sells items from Pushcart only. Shop menu/cart storage are external systems."
     },
     "level_data": {
-        "1": { "sp_cost": 30, "vendor_slot_count": 3, "broadcast_radius": 20, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "2": { "sp_cost": 32, "vendor_slot_count": 4, "broadcast_radius": 22, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "3": { "sp_cost": 34, "vendor_slot_count": 5, "broadcast_radius": 24, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "4": { "sp_cost": 36, "vendor_slot_count": 6, "broadcast_radius": 26, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "5": { "sp_cost": 38, "vendor_slot_count": 7, "broadcast_radius": 28, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "6": { "sp_cost": 40, "vendor_slot_count": 8, "broadcast_radius": 30, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "7": { "sp_cost": 42, "vendor_slot_count": 9, "broadcast_radius": 32, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "8": { "sp_cost": 44, "vendor_slot_count": 10, "broadcast_radius": 34, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "9": { "sp_cost": 46, "vendor_slot_count": 11, "broadcast_radius": 36, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 },
-        "10": { "sp_cost": 48, "vendor_slot_count": 12, "broadcast_radius": 38, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 100 }
+        "1": { "sp_cost": 30, "max_vending_stacks": 3, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "2": { "sp_cost": 30, "max_vending_stacks": 4, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "3": { "sp_cost": 30, "max_vending_stacks": 5, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "4": { "sp_cost": 30, "max_vending_stacks": 6, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "5": { "sp_cost": 30, "max_vending_stacks": 7, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "6": { "sp_cost": 30, "max_vending_stacks": 8, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "7": { "sp_cost": 30, "max_vending_stacks": 9, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "8": { "sp_cost": 30, "max_vending_stacks": 10, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "9": { "sp_cost": 30, "max_vending_stacks": 11, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 },
+        "10": { "sp_cost": 30, "max_vending_stacks": 12, "requires_cart": true, "cart_items_only": true, "cast_time_ticks": 0, "cast_delay_ticks": 0, "cooldown_ticks": 0 }
     },
     "ui": {
         "texture": "merchant/merchant_vending",

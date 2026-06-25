@@ -48,7 +48,7 @@ public class RagnarSkillResolver {
         }
 
         List<CombatResolution> results = new ArrayList<>();
-        SkillCombatSpec spec = specOpt.get();
+        SkillCombatSpec spec = applyMetadataOverrides(specOpt.get(), ctx.metadata());
         for (var candidate : ctx.candidates()) {
             net.minecraft.world.entity.Entity entity = player.serverLevel().getEntity(candidate.entityId());
             if (!(entity instanceof LivingEntity target) || target == player) {
@@ -90,5 +90,32 @@ public class RagnarSkillResolver {
         return rawSkillId.contains(":")
                 ? ResourceLocation.tryParse(rawSkillId)
                 : ResourceLocation.fromNamespaceAndPath("ragnarmmo", rawSkillId);
+    }
+
+    private static SkillCombatSpec applyMetadataOverrides(SkillCombatSpec spec, Map<String, Object> metadata) {
+        if (spec == null || metadata == null) {
+            return spec;
+        }
+        Object hitCountRaw = metadata.get("_hit_count_override");
+        if (!(hitCountRaw instanceof Number hitCountNumber)) {
+            return spec;
+        }
+        int hitCount = Math.max(1, hitCountNumber.intValue());
+        return new SkillCombatSpec(
+                spec.damageType(),
+                spec.element(),
+                spec.hitPolicy(),
+                spec.damagePercent(),
+                hitCount,
+                spec.aoeRadius(),
+                spec.splashRatio(),
+                spec.accuracyBonus(),
+                spec.defenseBypassPercent(),
+                spec.flatDamageBonus(),
+                spec.undeadMultiplier(),
+                spec.rangeType(),
+                spec.elementPolicy(),
+                spec.defensePolicy(),
+                spec.multiHitPolicy());
     }
 }

@@ -148,7 +148,22 @@ public final class SkillDefinitionRegistry {
                 }
             }
 
+            Map<String, Double> combatNumericDefaults = new LinkedHashMap<>();
+            Map<String, String> combatStringDefaults = new LinkedHashMap<>();
+            if (root.has("combat") && root.get("combat").isJsonObject()) {
+                for (var valueEntry : root.getAsJsonObject("combat").entrySet()) {
+                    if (valueEntry.getValue().isJsonPrimitive()
+                            && valueEntry.getValue().getAsJsonPrimitive().isNumber()) {
+                        combatNumericDefaults.put(valueEntry.getKey(), valueEntry.getValue().getAsDouble());
+                    } else if (valueEntry.getValue().isJsonPrimitive()
+                            && valueEntry.getValue().getAsJsonPrimitive().isString()) {
+                        combatStringDefaults.put(valueEntry.getKey(), valueEntry.getValue().getAsString());
+                    }
+                }
+            }
+
             Map<Integer, Map<String, Double>> levelData = new LinkedHashMap<>();
+            Map<Integer, Map<String, String>> levelStringData = new LinkedHashMap<>();
             if (root.has("level_data") && root.get("level_data").isJsonObject()) {
                 for (var levelEntry : root.getAsJsonObject("level_data").entrySet()) {
                     try {
@@ -156,17 +171,25 @@ public final class SkillDefinitionRegistry {
                         if (!levelEntry.getValue().isJsonObject()) {
                             continue;
                         }
-                        Map<String, Double> values = new LinkedHashMap<>();
+                        Map<String, Double> values = new LinkedHashMap<>(combatNumericDefaults);
+                        Map<String, String> stringValues = new LinkedHashMap<>(combatStringDefaults);
                         for (var valueEntry : levelEntry.getValue().getAsJsonObject().entrySet()) {
                             if (valueEntry.getValue().isJsonPrimitive()
                                     && valueEntry.getValue().getAsJsonPrimitive().isNumber()) {
                                 values.put(valueEntry.getKey(), valueEntry.getValue().getAsDouble());
+                            } else if (valueEntry.getValue().isJsonPrimitive()
+                                    && valueEntry.getValue().getAsJsonPrimitive().isString()) {
+                                stringValues.put(valueEntry.getKey(), valueEntry.getValue().getAsString());
                             }
                         }
                         levelData.put(level, Map.copyOf(values));
+                        levelStringData.put(level, Map.copyOf(stringValues));
                     } catch (NumberFormatException ignored) {
                     }
                 }
+            } else if (!combatNumericDefaults.isEmpty() || !combatStringDefaults.isEmpty()) {
+                levelData.put(1, Map.copyOf(combatNumericDefaults));
+                levelStringData.put(1, Map.copyOf(combatStringDefaults));
             }
 
             Set<JobType> jobs = new LinkedHashSet<>();
@@ -192,6 +215,7 @@ public final class SkillDefinitionRegistry {
                     texture,
                     Map.copyOf(requirements),
                     Map.copyOf(levelData),
+                    Map.copyOf(levelStringData),
                     Set.copyOf(jobs)));
         } catch (Exception ignored) {
         }

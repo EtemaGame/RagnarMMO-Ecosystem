@@ -29,6 +29,14 @@
     "reference": {
         "notes": "Arrow Shower: RO_ADAPTED as a bow area cleanup/control skill. Knockback is intentionally modest."
     },
+    "combat": {
+        "damage_type": "physical",
+        "range_type": "ground",
+        "element_policy": "weapon",
+        "hit_policy": "basic_attack",
+        "defense_policy": "normal",
+        "multi_hit_policy": "single"
+    },
     "level_data": {
         "1": { "sp_cost": 15, "damage_percent": 80, "aoe_radius": 1.5, "knockback_cells": 2, "knockback_strength": 0.6, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
         "2": { "sp_cost": 15, "damage_percent": 85, "aoe_radius": 1.5, "knockback_cells": 2, "knockback_strength": 0.6, "arrow_cost": 1, "range": 9, "cast_time_ticks": 0, "cast_delay_ticks": 20, "cooldown_ticks": 0 },
