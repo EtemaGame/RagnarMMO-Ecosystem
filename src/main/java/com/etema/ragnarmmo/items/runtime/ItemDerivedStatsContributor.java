@@ -9,13 +9,22 @@ import com.etema.ragnarmmo.core.api.stats.DerivedStatsService;
 import com.etema.ragnarmmo.player.stats.compute.RoPreRenewalFormulaService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.common.ToolActions;
 
 public final class ItemDerivedStatsContributor {
     private static final int DEFAULT_WEAPON_ASPD = 156;
+    private static final EquipmentSlot[] ARMOR_DEFENSE_SLOTS = {
+            EquipmentSlot.HEAD,
+            EquipmentSlot.CHEST,
+            EquipmentSlot.LEGS,
+            EquipmentSlot.FEET
+    };
 
     private ItemDerivedStatsContributor() {
     }
@@ -97,7 +106,45 @@ public final class ItemDerivedStatsContributor {
     }
 
     private static double computeArmorHardDefense(ServerPlayer player) {
+        double hardDefense = 0.0D;
+        for (EquipmentSlot slot : ARMOR_DEFENSE_SLOTS) {
+            hardDefense += armorHardDefense(player.getItemBySlot(slot), slot);
+        }
+
+        ItemStack offhand = player.getItemInHand(InteractionHand.OFF_HAND);
+        if (hasShield(player)) {
+            hardDefense += armorHardDefense(offhand, EquipmentSlot.OFFHAND);
+        }
+        return Math.max(0.0D, hardDefense);
+    }
+
+    static double armorHardDefense(ItemStack stack, EquipmentSlot slot) {
+        if (stack == null || stack.isEmpty() || slot == null) {
+            return 0.0D;
+        }
+
+        return armorHardDefenseFromModifiers(stack.getAttributeModifiers(slot).get(Attributes.ARMOR));
+    }
+
+    static double armorHardDefenseModifierValue(AttributeModifier modifier) {
+        if (modifier == null) {
+            return 0.0D;
+        }
+        if (modifier.getOperation() == AttributeModifier.Operation.ADDITION) {
+            return Math.max(0.0D, modifier.getAmount());
+        }
         return 0.0D;
+    }
+
+    static double armorHardDefenseFromModifiers(Iterable<AttributeModifier> modifiers) {
+        if (modifiers == null) {
+            return 0.0D;
+        }
+        double hardDefense = 0.0D;
+        for (AttributeModifier modifier : modifiers) {
+            hardDefense += armorHardDefenseModifierValue(modifier);
+        }
+        return Math.max(0.0D, hardDefense);
     }
 
     private static double computeArmorHardMagicDefense(ServerPlayer player) {

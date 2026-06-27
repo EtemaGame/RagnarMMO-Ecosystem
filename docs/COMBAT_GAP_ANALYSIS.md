@@ -119,12 +119,13 @@ Existe:
 - Blind RO reduce HIT/FLEE; Chaos RO existe como puente desde Confusion/Nausea y aplica targeting/movimiento caotico basico.
 - Hiding RO propio bloquea targeting normal, restringe movimiento y ya no depende de `INVISIBILITY`.
 - Stone Curse cambia defensa a Earth 1, inmoviliza con estado propio y se rompe con dano.
+- Stun, Sleep, Curse, Bleeding y Cloaking tienen runtime base propio.
 - Los efectos vanilla compatibles se convierten a estados RO y luego se remueven; los no compatibles se remueven.
 
 Falta:
 
 - `PARCIAL`: no todas las reglas especiales de magia estan completas.
-- `PARCIAL`: faltan estados RO canonicos adicionales y afinacion fina por servidor objetivo.
+- `PARCIAL`: estados RO canonicos base existen para Poison, Silence, Blind, Chaos, Frozen, Stone Curse, Hiding, Cloaking, Stun, Sleep, Curse y Bleeding; falta afinacion fina por servidor objetivo y aplicadores completos.
 - `BLOQUEADO`: UI final de barra de cast, modificadores de equipo/cartas para cast e interrupcion.
 
 ## Mob -> jugador
@@ -170,10 +171,11 @@ Existe:
 - MDEF porcentual + soft MDEF, `DefenseFormulaService` centraliza formulas.
 - La ruta comun ya usa roll Pre-Renewal de SoftDEF de jugador o mob segun tipo.
 - La SoftDEF de mob usa VIT del `MobProfile` en autoattack directo y en contrato de skills.
+- La DEF fisica de armaduras vanilla equipadas entra como Hard DEF desde `Attributes.ARMOR` en casco, pechera, pantalones y botas. Escudo offhand tambien puede aportar si declara ese atributo.
 
 Falta:
 
-- `BLOQUEADO`: hard DEF/MDEF de equipo/refine RO.
+- `BLOQUEADO`: hard DEF/MDEF de equipo/refine RO final por data propia.
 
 ## Size modifier
 
@@ -278,7 +280,7 @@ Falta:
 
 1. Completar reglas fisicas finas que aun dependen de data final: refine, upgrade bonus y dual wield avanzado.
 2. Reemplazar tabla ASPD provisional por tabla oficial validada si se decide buscar paridad exacta de RO.
-3. Completar estados RO canonicos adicionales y pendientes especificos: Cloaking futuro, SP drain de Hiding y consumibles reales.
+3. Completar aplicadores y afinacion fina de estados RO: Cloaking skill futura, fuentes reales de Stun/Sleep/Curse/Bleeding y consumibles reales.
 
 ## Pendiente bloqueado por otros sistemas
 
@@ -289,7 +291,7 @@ Falta:
 - Consumibles/catalysts.
 - Party/friendly targeting.
 - UI final de cast/menus.
-- Estados RO completos y politica final para efectos vanilla/otros mods.
+- Aplicadores completos para estados RO y politica final para efectos de otros mods.
 
 ## Pruebas de combate
 

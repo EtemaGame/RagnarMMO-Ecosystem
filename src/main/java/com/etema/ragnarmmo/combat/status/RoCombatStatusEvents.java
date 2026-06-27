@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -25,12 +26,26 @@ public final class RoCombatStatusEvents {
         RoCombatStatusService.clearExpired(entity);
         bridgeVanillaEffects(entity);
         RoCombatStatusService.tickPoison(entity);
+        RoCombatStatusService.tickBleeding(entity);
         RoCombatStatusService.tickHiding(entity);
+        RoCombatStatusService.tickCloaking(entity);
+        RoCombatStatusService.tickActionBlocked(entity);
         RoCombatStatusService.tickChaos(entity);
         if (entity instanceof Mob mob && mob.getTarget() != null
-                && RoCombatStatusService.hasHiding(mob.getTarget())
+                && RoCombatStatusService.hasConcealment(mob.getTarget())
                 && !RoCombatStatusService.canDetectHiding(mob)) {
             mob.setTarget(null);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingAttack(LivingAttackEvent event) {
+        if (event.getEntity().level().isClientSide()) {
+            return;
+        }
+        var attackerEntity = event.getSource().getEntity();
+        if (attackerEntity instanceof LivingEntity attacker && RoCombatStatusService.blocksAction(attacker)) {
+            event.setCanceled(true);
         }
     }
 
@@ -47,6 +62,12 @@ public final class RoCombatStatusEvents {
         }
         if (event.getAmount() > 0.0F && RoCombatStatusService.hasHiding(event.getEntity())) {
             RoCombatStatusService.revealHiding(event.getEntity());
+        }
+        if (event.getAmount() > 0.0F && RoCombatStatusService.hasCloaking(event.getEntity())) {
+            RoCombatStatusService.revealHiding(event.getEntity());
+        }
+        if (event.getAmount() > 0.0F && RoCombatStatusService.hasSleep(event.getEntity())) {
+            RoCombatStatusService.clearSleep(event.getEntity());
         }
         if (!(event.getSource().getEntity() instanceof Mob)) {
             return;

@@ -32,15 +32,15 @@ public final class JobSkillExecutor {
         if (definitionOpt.isEmpty() || !definitionOpt.get().isActive()) {
             return reject(player, "Skill is not active: " + skillId);
         }
-        if (RoCombatStatusService.blocksCast(player)) {
-            return reject(player, "You are silenced.");
-        }
         if (RoCombatStatusService.hasHiding(player)) {
             if ("ragnarmmo".equals(skillId.getNamespace()) && "hiding".equals(skillId.getPath())) {
                 RoCombatStatusService.revealHiding(player);
                 return true;
             }
             return reject(player, "You cannot use skills while hiding.");
+        }
+        if (RoCombatStatusService.blocksCast(player)) {
+            return reject(player, "You cannot use skills in your current status.");
         }
 
         var statsOpt = RagnarCoreAPI.get(player);

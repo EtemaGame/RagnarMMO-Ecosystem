@@ -198,7 +198,7 @@ public final class RagnarCombatEngine {
         if (!player.isAlive()) {
             return BasicAttackOutcome.rejected(source, CombatRejectReason.ACTOR_DEAD, true, List.of());
         }
-        if (RoCombatStatusService.hasHiding(player)) {
+        if (RoCombatStatusService.blocksAction(player)) {
             return BasicAttackOutcome.rejected(source, CombatRejectReason.ACTOR_STATUS_BLOCKED, true, List.of());
         }
 

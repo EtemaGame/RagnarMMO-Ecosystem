@@ -39,7 +39,7 @@ public final class AggroEvents {
 
         ServerPlayer aggroTarget = serverLevel.getServer().getPlayerList().getPlayer(targetUUID);
         if (aggroTarget == null || !aggroTarget.isAlive()
-                || (RoCombatStatusService.hasHiding(aggroTarget) && !RoCombatStatusService.canDetectHiding(mob))) {
+                || (RoCombatStatusService.hasConcealment(aggroTarget) && !RoCombatStatusService.canDetectHiding(mob))) {
             AggroManager.clearAggro(mob);
             RoCombatStatusService.clearProvoke(mob);
             mob.setTarget(null);

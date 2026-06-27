@@ -41,7 +41,7 @@ public final class JobSkillCastService {
         ServerPlayer player = context.player();
         long now = player.level().getGameTime();
         if (RoCombatStatusService.blocksCast(player)) {
-            player.sendSystemMessage(net.minecraft.network.chat.Component.literal("You are silenced."));
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal("You cannot cast in your current status."));
             return false;
         }
         if (hasPendingCast(player)) {
@@ -90,6 +90,16 @@ public final class JobSkillCastService {
             ServerPlayer player = event.getServer().getPlayerList().getPlayer(entry.getKey());
             if (player == null || !player.isAlive()) {
                 iterator.remove();
+                continue;
+            }
+            if (RoCombatStatusService.blocksCast(player)) {
+                PendingCast pending = entry.getValue();
+                iterator.remove();
+                Network.sendTrackingEntityAndSelf(player, new ClientboundRagnarCastStatePacket(
+                        player.getId(),
+                        pending.skillId().toString(),
+                        ClientboundRagnarCastStatePacket.CastState.INTERRUPTED,
+                        0));
                 continue;
             }
             long now = player.level().getGameTime();

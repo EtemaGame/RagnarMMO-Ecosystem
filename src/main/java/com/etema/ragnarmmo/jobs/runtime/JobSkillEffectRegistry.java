@@ -188,6 +188,7 @@ public final class JobSkillEffectRegistry {
                 RoCombatStatusService.applyOffensiveBlessing(target, duration, 0.5D);
             } else {
                 target = aimedTarget instanceof ServerPlayer ? aimedTarget : context.player();
+                RoCombatStatusService.clearCurse(target);
                 RoCombatStatusService.applyBlessing(target, duration,
                         context.definition().getLevelInt("stat_bonus", context.level(),
                                 AcolyteSkillFormulaService.blessingStatBonus(context.level())));
@@ -251,7 +252,11 @@ public final class JobSkillEffectRegistry {
         }).orElse(false));
         register(id("hiding"), context -> {
             int duration = context.definition().getLevelInt("duration_ticks", context.level(), 600);
-            RoCombatStatusService.applyHiding(context.player(), duration);
+            RoCombatStatusService.applyHiding(
+                    context.player(),
+                    duration,
+                    context.definition().getLevelInt("sp_drain_amount", context.level(), 1),
+                    context.definition().getLevelInt("sp_drain_interval_ticks", context.level(), 20 * (4 + context.level())));
             AABB area = context.player().getBoundingBox().inflate(10.0D);
             for (Mob mob : context.player().level().getEntitiesOfClass(Mob.class, area,
                     mob -> mob.getTarget() == context.player() && !RoCombatStatusService.canDetectHiding(mob))) {

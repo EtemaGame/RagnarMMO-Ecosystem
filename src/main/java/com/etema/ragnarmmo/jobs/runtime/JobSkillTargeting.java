@@ -32,7 +32,7 @@ public final class JobSkillTargeting {
                 entity -> entity instanceof LivingEntity living
                         && living.isAlive()
                         && entity != player
-                        && (!RoCombatStatusService.hasHiding(living) || RoCombatStatusService.canDetectHiding(player))
+                        && (!RoCombatStatusService.hasConcealment(living) || RoCombatStatusService.canDetectHiding(player))
                         && player.hasLineOfSight(entity));
         return hit != null && hit.getEntity() instanceof LivingEntity living
                 ? Optional.of(living)

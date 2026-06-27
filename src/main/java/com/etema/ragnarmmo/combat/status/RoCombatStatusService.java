@@ -1,7 +1,11 @@
 package com.etema.ragnarmmo.combat.status;
 
-import net.minecraft.nbt.CompoundTag;
 import com.etema.ragnarmmo.common.api.stats.StatKeys;
+import com.etema.ragnarmmo.common.api.RagnarCoreAPI;
+import com.etema.ragnarmmo.common.api.player.RoPlayerSyncDomain;
+import com.etema.ragnarmmo.player.stats.network.PlayerStatsSyncService;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 
@@ -39,6 +43,15 @@ public final class RoCombatStatusService {
     public static final String CHAOS_UNTIL_TAG = "ragnar_chaos_until";
     public static final String SIGHT_UNTIL_TAG = "ragnar_sight_until";
     public static final String HIDING_UNTIL_TAG = "ragnar_hiding_until";
+    public static final String HIDING_NEXT_SP_DRAIN_TAG = "ragnar_hiding_next_sp_drain";
+    public static final String HIDING_SP_DRAIN_AMOUNT_TAG = "ragnar_hiding_sp_drain_amount";
+    public static final String HIDING_SP_DRAIN_INTERVAL_TAG = "ragnar_hiding_sp_drain_interval";
+    public static final String CLOAKING_UNTIL_TAG = "ragnar_cloaking_until";
+    public static final String STUN_UNTIL_TAG = "ragnar_stun_until";
+    public static final String SLEEP_UNTIL_TAG = "ragnar_sleep_until";
+    public static final String CURSE_UNTIL_TAG = "ragnar_curse_until";
+    public static final String BLEEDING_UNTIL_TAG = "ragnar_bleeding_until";
+    public static final String BLEEDING_NEXT_TICK_TAG = "ragnar_bleeding_next_tick";
 
     private RoCombatStatusService() {
     }
@@ -285,18 +298,116 @@ public final class RoCombatStatusService {
     }
 
     public static void applyHiding(LivingEntity target, int durationTicks) {
+        applyHiding(target, durationTicks, 0, 0);
+    }
+
+    public static void applyHiding(LivingEntity target, int durationTicks, int spDrainAmount, int spDrainIntervalTicks) {
         if (target == null) {
             return;
         }
-        long until = target.level().getGameTime() + Math.max(1, durationTicks);
-        target.getPersistentData().putLong(HIDING_UNTIL_TAG, until);
+        long now = target.level().getGameTime();
+        CompoundTag data = target.getPersistentData();
+        data.putLong(HIDING_UNTIL_TAG, now + Math.max(1, durationTicks));
+        int drainAmount = Math.max(0, spDrainAmount);
+        int drainInterval = Math.max(1, spDrainIntervalTicks);
+        data.putInt(HIDING_SP_DRAIN_AMOUNT_TAG, drainAmount);
+        data.putInt(HIDING_SP_DRAIN_INTERVAL_TAG, drainInterval);
+        if (drainAmount > 0) {
+            data.putLong(HIDING_NEXT_SP_DRAIN_TAG, now + drainInterval);
+        } else {
+            data.remove(HIDING_NEXT_SP_DRAIN_TAG);
+        }
     }
 
     public static void clearHiding(LivingEntity target) {
         if (target == null) {
             return;
         }
-        target.getPersistentData().remove(HIDING_UNTIL_TAG);
+        CompoundTag data = target.getPersistentData();
+        data.remove(HIDING_UNTIL_TAG);
+        data.remove(HIDING_NEXT_SP_DRAIN_TAG);
+        data.remove(HIDING_SP_DRAIN_AMOUNT_TAG);
+        data.remove(HIDING_SP_DRAIN_INTERVAL_TAG);
+    }
+
+    public static void applyCloaking(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().putLong(CLOAKING_UNTIL_TAG,
+                target.level().getGameTime() + Math.max(1, durationTicks));
+    }
+
+    public static void clearCloaking(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(CLOAKING_UNTIL_TAG);
+    }
+
+    public static void applyStun(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().putLong(STUN_UNTIL_TAG,
+                target.level().getGameTime() + Math.max(1, durationTicks));
+    }
+
+    public static void clearStun(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(STUN_UNTIL_TAG);
+    }
+
+    public static void applySleep(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().putLong(SLEEP_UNTIL_TAG,
+                target.level().getGameTime() + Math.max(1, durationTicks));
+    }
+
+    public static void clearSleep(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(SLEEP_UNTIL_TAG);
+    }
+
+    public static void applyCurse(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        clearIncreaseAgi(target);
+        target.getPersistentData().putLong(CURSE_UNTIL_TAG,
+                target.level().getGameTime() + Math.max(1, durationTicks));
+    }
+
+    public static void clearCurse(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        target.getPersistentData().remove(CURSE_UNTIL_TAG);
+    }
+
+    public static void applyBleeding(LivingEntity target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        long now = target.level().getGameTime();
+        CompoundTag data = target.getPersistentData();
+        data.putLong(BLEEDING_UNTIL_TAG, now + Math.max(1, durationTicks));
+        data.putLong(BLEEDING_NEXT_TICK_TAG, now + 100L);
+    }
+
+    public static void clearBleeding(LivingEntity target) {
+        if (target == null) {
+            return;
+        }
+        CompoundTag data = target.getPersistentData();
+        data.remove(BLEEDING_UNTIL_TAG);
+        data.remove(BLEEDING_NEXT_TICK_TAG);
     }
 
     public static void clearSight(LivingEntity target) {
@@ -384,13 +495,14 @@ public final class RoCombatStatusService {
     }
 
     public static double physicalAttackMultiplier(LivingEntity entity) {
+        double multiplier = hasCurse(entity) ? 0.75D : 1.0D;
         if (isActive(entity, OVER_THRUST_UNTIL_TAG)) {
-            return 1.0D + (entity.getPersistentData().getInt(OVER_THRUST_LEVEL_TAG) * 0.05D);
+            multiplier *= 1.0D + (entity.getPersistentData().getInt(OVER_THRUST_LEVEL_TAG) * 0.05D);
         }
         if (!isActive(entity, PROVOKE_UNTIL_TAG)) {
-            return 1.0D;
+            return multiplier;
         }
-        return 1.0D + (entity.getPersistentData().getDouble(PROVOKE_ATK_BONUS_TAG) / 100.0D);
+        return multiplier * (1.0D + (entity.getPersistentData().getDouble(PROVOKE_ATK_BONUS_TAG) / 100.0D));
     }
 
     public static double magnumBreakFireBonusRatio(LivingEntity entity) {
@@ -452,12 +564,18 @@ public final class RoCombatStatusService {
                 && (key == StatKeys.STR || key == StatKeys.DEX || key == StatKeys.INT)) {
             modifier += Math.max(0, entity.getPersistentData().getInt(BLESSING_AMOUNT_TAG));
         }
+        if (hasCurse(entity) && key == StatKeys.LUK) {
+            modifier -= currentRoundedStat(entity, key);
+        }
         if (key == StatKeys.AGI) {
             if (isActive(entity, INCREASE_AGI_UNTIL_TAG)) {
                 modifier += Math.max(0, entity.getPersistentData().getInt(INCREASE_AGI_AMOUNT_TAG));
             }
             if (isActive(entity, DECREASE_AGI_UNTIL_TAG)) {
                 modifier -= Math.max(0, entity.getPersistentData().getInt(DECREASE_AGI_AMOUNT_TAG));
+            }
+            if (hasCurse(entity)) {
+                modifier -= Math.max(0, currentRoundedStat(entity, key) / 2);
             }
         }
         return modifier;
@@ -513,8 +631,44 @@ public final class RoCombatStatusService {
         return isActive(entity, HIDING_UNTIL_TAG);
     }
 
+    public static boolean hasCloaking(LivingEntity entity) {
+        return isActive(entity, CLOAKING_UNTIL_TAG);
+    }
+
+    public static boolean hasConcealment(LivingEntity entity) {
+        return hasHiding(entity) || hasCloaking(entity);
+    }
+
+    public static boolean hasStun(LivingEntity entity) {
+        return isActive(entity, STUN_UNTIL_TAG);
+    }
+
+    public static boolean hasSleep(LivingEntity entity) {
+        return isActive(entity, SLEEP_UNTIL_TAG);
+    }
+
+    public static boolean hasCurse(LivingEntity entity) {
+        return isActive(entity, CURSE_UNTIL_TAG);
+    }
+
+    public static boolean hasBleeding(LivingEntity entity) {
+        return isActive(entity, BLEEDING_UNTIL_TAG);
+    }
+
+    public static boolean blocksAction(LivingEntity entity) {
+        return hasHiding(entity)
+                || hasStun(entity)
+                || hasSleep(entity)
+                || hasFrozen(entity)
+                || hasStoneCurse(entity);
+    }
+
     public static boolean blocksCast(LivingEntity entity) {
-        return hasSilence(entity);
+        return hasSilence(entity)
+                || hasStun(entity)
+                || hasSleep(entity)
+                || hasFrozen(entity)
+                || hasStoneCurse(entity);
     }
 
     public static double hitMultiplier(LivingEntity entity) {
@@ -522,6 +676,9 @@ public final class RoCombatStatusService {
     }
 
     public static double fleeMultiplier(LivingEntity entity) {
+        if (hasStun(entity) || hasSleep(entity) || hasFrozen(entity) || hasStoneCurse(entity)) {
+            return 0.0D;
+        }
         return hasBlind(entity) ? 0.75D : 1.0D;
     }
 
@@ -552,10 +709,12 @@ public final class RoCombatStatusService {
     }
 
     public static boolean revealHiding(LivingEntity target) {
-        if (!hasHiding(target)) {
+        boolean concealed = hasConcealment(target);
+        if (!concealed) {
             return false;
         }
         clearHiding(target);
+        clearCloaking(target);
         target.removeEffect(net.minecraft.world.effect.MobEffects.INVISIBILITY);
         return true;
     }
@@ -566,6 +725,47 @@ public final class RoCombatStatusService {
         }
         entity.setDeltaMovement(0.0D, entity.getDeltaMovement().y, 0.0D);
         entity.hurtMarked = true;
+        drainHidingSp(entity);
+    }
+
+    public static void tickCloaking(LivingEntity entity) {
+        if (!hasCloaking(entity)) {
+            return;
+        }
+        if (entity instanceof Mob mob) {
+            mob.getNavigation().stop();
+        }
+    }
+
+    public static void tickActionBlocked(LivingEntity entity) {
+        if (!hasStun(entity) && !hasSleep(entity) && !hasFrozen(entity) && !hasStoneCurse(entity)) {
+            return;
+        }
+        entity.setDeltaMovement(0.0D, entity.getDeltaMovement().y, 0.0D);
+        if (entity instanceof Mob mob) {
+            mob.getNavigation().stop();
+        }
+        entity.hurtMarked = true;
+    }
+
+    public static void tickBleeding(LivingEntity entity) {
+        if (!hasBleeding(entity)) {
+            return;
+        }
+        long now = entity.level().getGameTime();
+        CompoundTag data = entity.getPersistentData();
+        long nextTick = data.getLong(BLEEDING_NEXT_TICK_TAG);
+        if (nextTick > now) {
+            return;
+        }
+        data.putLong(BLEEDING_NEXT_TICK_TAG, now + 100L);
+        float damage = Math.max(1.0F, entity.getMaxHealth() * 0.01F);
+        if (entity.getHealth() <= damage) {
+            damage = Math.max(0.0F, entity.getHealth() - 1.0F);
+        }
+        if (damage > 0.0F) {
+            entity.hurt(entity.damageSources().magic(), damage);
+        }
     }
 
     public static void tickChaos(LivingEntity entity) {
@@ -671,6 +871,21 @@ public final class RoCombatStatusService {
         if (isExpired(entity, HIDING_UNTIL_TAG)) {
             clearHiding(entity);
         }
+        if (isExpired(entity, CLOAKING_UNTIL_TAG)) {
+            clearCloaking(entity);
+        }
+        if (isExpired(entity, STUN_UNTIL_TAG)) {
+            clearStun(entity);
+        }
+        if (isExpired(entity, SLEEP_UNTIL_TAG)) {
+            clearSleep(entity);
+        }
+        if (isExpired(entity, CURSE_UNTIL_TAG)) {
+            clearCurse(entity);
+        }
+        if (isExpired(entity, BLEEDING_UNTIL_TAG)) {
+            clearBleeding(entity);
+        }
         if (isExpired(entity, OVER_THRUST_UNTIL_TAG)) {
             clearOverThrust(entity);
         }
@@ -696,5 +911,38 @@ public final class RoCombatStatusService {
         }
         long until = entity.getPersistentData().getLong(untilTag);
         return until > 0 && until <= entity.level().getGameTime();
+    }
+
+    private static int currentRoundedStat(LivingEntity entity, StatKeys key) {
+        if (!(entity instanceof ServerPlayer player) || key == null) {
+            return 0;
+        }
+        double total = com.etema.ragnarmmo.common.api.stats.StatAttributes.getTotal(player, key);
+        return Math.max(0, (int) Math.round(total));
+    }
+
+    private static void drainHidingSp(LivingEntity entity) {
+        if (!(entity instanceof ServerPlayer player)) {
+            return;
+        }
+        CompoundTag data = player.getPersistentData();
+        int amount = Math.max(0, data.getInt(HIDING_SP_DRAIN_AMOUNT_TAG));
+        if (amount <= 0) {
+            return;
+        }
+        long now = player.level().getGameTime();
+        long next = data.getLong(HIDING_NEXT_SP_DRAIN_TAG);
+        if (next > now) {
+            return;
+        }
+        int interval = Math.max(1, data.getInt(HIDING_SP_DRAIN_INTERVAL_TAG));
+        RagnarCoreAPI.get(player).ifPresent(stats -> {
+            if (!stats.consumeSP(amount)) {
+                clearHiding(player);
+                return;
+            }
+            data.putLong(HIDING_NEXT_SP_DRAIN_TAG, now + interval);
+            PlayerStatsSyncService.sync(player, stats, RoPlayerSyncDomain.RESOURCES.bit());
+        });
     }
 }

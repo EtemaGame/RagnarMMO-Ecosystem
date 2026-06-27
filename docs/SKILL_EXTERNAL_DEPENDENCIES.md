@@ -24,8 +24,9 @@ Skills implementadas: Divine Protection, Demon Bane, Heal, Increase AGI, Decreas
 - Demon Bane: bono plano tardio contra Undead/Demon no-player.
 - Heal: `max(1, floor((BaseLv + INT) / 8)) * (4 + 8 * SkillLv)`, dano ofensivo Holy contra Undead.
 - Increase AGI, Decrease AGI, Angelus, Blessing y Signum usan estados RO propios.
+- Blessing remueve Curse en uso de soporte.
 - Cure limpia Blind/Confusion equivalentes actuales y Silence RO propio.
-- Blind y Chaos ya tienen estado RO propio; Confusion vanilla renueva Chaos como puente. Chaos aplica targeting/movimiento caotico basico.
+- Blind y Chaos ya tienen estado RO propio; Confusion vanilla se convierte a Chaos y se remueve. Chaos aplica targeting/movimiento caotico basico.
 
 ### Archer
 
@@ -161,7 +162,7 @@ Pendiente externo:
 
 - Pipeline de mobs con STR/DEX/INT reales para uso ofensivo.
 - Targeteo aliado/enemigo final por sistema de party/friendly targeting.
-- Cure como estado RO para remocion de Curse.
+- Aplicacion completa de Curse contra mobs/players desde fuentes futuras.
 
 #### Cure
 
@@ -180,7 +181,7 @@ Pendiente externo:
 
 Pendiente externo:
 
-- Hiding RO propio ya existe; Cloaking futuro debe usar estado propio equivalente.
+- Hiding RO propio ya existe; Cloaking futuro ya tiene estado runtime base, falta skill/aplicador real.
 - Reglas de enemigo/aliado.
 
 #### Divine Protection / Demon Bane / Signum Crucis
@@ -235,7 +236,6 @@ Pendiente externo:
 
 Pendiente externo:
 
-- Drenaje periodico de SP.
 - Bloqueo de items y regen.
 - Afinar deteccion por mobs Insect/Demon/Boss protocol cuando se cierren perfiles finales.
 - Detecting futuro.
@@ -267,7 +267,7 @@ Pendiente externo:
 
 Pendiente externo:
 
-- Hiding RO propio ya se revela; falta Cloaking futuro.
+- Hiding y Cloaking runtime base ya se revelan; falta skill Cloaking futura.
 - Aura persistente que revele al entrar al area.
 
 #### Napalm Beat
@@ -303,7 +303,7 @@ Pendiente externo:
 Pendiente externo:
 
 - UI final de barra de cast.
-- Silence RO ya bloquea casteo; Blind/Chaos/Hiding/Stone Curse tienen estado propio. Faltan estados canonicos adicionales.
+- Silence RO ya bloquea casteo; Blind/Chaos/Hiding/Cloaking/Stone Curse/Stun/Sleep/Curse/Bleeding tienen estado propio. Faltan aplicadores completos y afinacion final.
 - Modificadores de equipo/cartas anti-interrupcion o cast.
 
 ### Merchant
@@ -354,10 +354,10 @@ Pendiente externo:
 ## Pendientes transversales
 
 - Consumibles: necesarios para bonuses de curacion de skills pasivas.
-- Inventario/equipment nuevo: leer armas, armaduras y restricciones finales.
+- Inventario/equipment nuevo: leer armas, DEF/refine de armaduras RO finales y restricciones finales. La DEF fisica vanilla ya entra como compatibilidad por `Attributes.ARMOR`.
 - PvP: cerrar diferencias entre mobs y jugadores.
 - Perfiles de mobs: raza, tamano, elemento, boss-like.
 - Hooks de interrupcion/knockback: Endure, Magnum Break.
-- Estados RO propios: reemplazar efectos vanilla. Politica en `docs/VANILLA_EFFECTS_POLICY.md`.
+- Estados RO propios: completar aplicadores, curas especificas y afinacion final. Politica en `docs/VANILLA_EFFECTS_POLICY.md`.
 - UI/menus: no bloquean formulas; bloquean activacion visual.
 - Efectos/sonidos/assets: afinacion final.

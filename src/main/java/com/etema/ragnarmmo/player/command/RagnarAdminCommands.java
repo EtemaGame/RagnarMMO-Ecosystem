@@ -7,6 +7,7 @@ import com.etema.ragnarmmo.common.api.player.RoPlayerSyncDomain;
 import com.etema.ragnarmmo.common.api.stats.ChangeReason;
 import com.etema.ragnarmmo.common.api.stats.IPlayerStats;
 import com.etema.ragnarmmo.common.api.stats.StatKeys;
+import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
 import com.etema.ragnarmmo.jobs.net.JobSkillsSyncService;
 import com.etema.ragnarmmo.jobs.player.PlayerJobSkillsProvider;
 import com.etema.ragnarmmo.player.stats.compute.StatResolutionService;
@@ -71,8 +72,36 @@ public final class RagnarAdminCommands {
                                                 Arrays.stream(JobType.values()).map(JobType::getId), builder))
                                         .executes(ctx -> setJob(ctx, self(ctx)))
                                         .then(Commands.argument("target", EntityArgument.player())
-                                                .executes(ctx -> setJob(ctx, EntityArgument.getPlayer(ctx, "target"))))))));
+                                                .executes(ctx -> setJob(ctx, EntityArgument.getPlayer(ctx, "target")))))))
+                .then(Commands.literal("status")
+                        .then(Commands.literal("apply")
+                                .then(Commands.argument("status", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(STATUS_IDS, builder))
+                                        .then(Commands.argument("duration_ticks", IntegerArgumentType.integer(1))
+                                                .executes(ctx -> applyStatus(ctx, self(ctx)))
+                                                .then(Commands.argument("target", EntityArgument.player())
+                                                        .executes(ctx -> applyStatus(ctx, EntityArgument.getPlayer(ctx, "target")))))))
+                        .then(Commands.literal("clear")
+                                .then(Commands.argument("status", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(STATUS_IDS, builder))
+                                        .executes(ctx -> clearStatus(ctx, self(ctx)))
+                                        .then(Commands.argument("target", EntityArgument.player())
+                                                .executes(ctx -> clearStatus(ctx, EntityArgument.getPlayer(ctx, "target"))))))));
     }
+
+    private static final java.util.List<String> STATUS_IDS = java.util.List.of(
+            "poison",
+            "silence",
+            "blind",
+            "chaos",
+            "frozen",
+            "stone_curse",
+            "hiding",
+            "cloaking",
+            "stun",
+            "sleep",
+            "curse",
+            "bleeding");
 
     private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> statValueCommand(boolean add) {
         return Commands.argument("stat", StringArgumentType.word())
@@ -195,6 +224,68 @@ public final class RagnarAdminCommands {
         stats.setJobExp(0);
         StatResolutionService.resolve(target, stats);
         return success(context, "Job is now " + id + " for " + target.getGameProfile().getName() + ".");
+    }
+
+    private static int applyStatus(CommandContext<CommandSourceStack> context, ServerPlayer target) {
+        String status = StringArgumentType.getString(context, "status");
+        int duration = IntegerArgumentType.getInteger(context, "duration_ticks");
+        if (!applyStatusById(target, status, duration)) {
+            context.getSource().sendFailure(Component.literal("Unknown RO status: " + status));
+            return 0;
+        }
+        return success(context, "Applied " + status + " to " + target.getGameProfile().getName()
+                + " for " + duration + " ticks.");
+    }
+
+    private static int clearStatus(CommandContext<CommandSourceStack> context, ServerPlayer target) {
+        String status = StringArgumentType.getString(context, "status");
+        if (!clearStatusById(target, status)) {
+            context.getSource().sendFailure(Component.literal("Unknown RO status: " + status));
+            return 0;
+        }
+        return success(context, "Cleared " + status + " from " + target.getGameProfile().getName() + ".");
+    }
+
+    private static boolean applyStatusById(ServerPlayer target, String status, int durationTicks) {
+        switch (status) {
+            case "poison" -> RoCombatStatusService.applyPoison(target, durationTicks);
+            case "silence" -> RoCombatStatusService.applySilence(target, durationTicks);
+            case "blind" -> RoCombatStatusService.applyBlind(target, durationTicks);
+            case "chaos" -> RoCombatStatusService.applyChaos(target, durationTicks);
+            case "frozen" -> RoCombatStatusService.applyFrozen(target, durationTicks);
+            case "stone_curse" -> RoCombatStatusService.applyStoneCurse(target, durationTicks);
+            case "hiding" -> RoCombatStatusService.applyHiding(target, durationTicks);
+            case "cloaking" -> RoCombatStatusService.applyCloaking(target, durationTicks);
+            case "stun" -> RoCombatStatusService.applyStun(target, durationTicks);
+            case "sleep" -> RoCombatStatusService.applySleep(target, durationTicks);
+            case "curse" -> RoCombatStatusService.applyCurse(target, durationTicks);
+            case "bleeding" -> RoCombatStatusService.applyBleeding(target, durationTicks);
+            default -> {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean clearStatusById(ServerPlayer target, String status) {
+        switch (status) {
+            case "poison" -> RoCombatStatusService.clearPoison(target);
+            case "silence" -> RoCombatStatusService.clearSilence(target);
+            case "blind" -> RoCombatStatusService.clearBlind(target);
+            case "chaos" -> RoCombatStatusService.clearChaos(target);
+            case "frozen" -> RoCombatStatusService.clearFrozen(target);
+            case "stone_curse" -> RoCombatStatusService.clearStoneCurse(target);
+            case "hiding" -> RoCombatStatusService.clearHiding(target);
+            case "cloaking" -> RoCombatStatusService.clearCloaking(target);
+            case "stun" -> RoCombatStatusService.clearStun(target);
+            case "sleep" -> RoCombatStatusService.clearSleep(target);
+            case "curse" -> RoCombatStatusService.clearCurse(target);
+            case "bleeding" -> RoCombatStatusService.clearBleeding(target);
+            default -> {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static ServerPlayer self(CommandContext<CommandSourceStack> context) throws com.mojang.brigadier.exceptions.CommandSyntaxException {

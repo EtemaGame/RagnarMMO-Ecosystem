@@ -51,7 +51,7 @@ public final class ServerTargetResolver {
         if (!living.isAlive()) {
             return ResolvedTargetCandidate.rejected(candidate.entityId(), TargetRejectReason.TARGET_DEAD, distance);
         }
-        if (RoCombatStatusService.hasHiding(living) && !RoCombatStatusService.canDetectHiding(attacker)) {
+        if (RoCombatStatusService.hasConcealment(living) && !RoCombatStatusService.canDetectHiding(attacker)) {
             return ResolvedTargetCandidate.rejected(candidate.entityId(), TargetRejectReason.TARGET_HIDDEN, distance);
         }
         if (distance > maxRange) {

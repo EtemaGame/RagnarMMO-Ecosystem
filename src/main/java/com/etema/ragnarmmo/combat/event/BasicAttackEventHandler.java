@@ -20,7 +20,7 @@ public final class BasicAttackEventHandler {
         if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        if (RoCombatStatusService.hasHiding(player)) {
+        if (RoCombatStatusService.blocksAction(player)) {
             event.setCanceled(true);
             return;
         }

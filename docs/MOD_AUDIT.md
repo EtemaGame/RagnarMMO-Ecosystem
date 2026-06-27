@@ -14,7 +14,7 @@ Conteo actual:
 
 - 375 archivos Java.
 - 353 recursos.
-- 14 tests Java.
+- 15 tests Java.
 
 ## Funcional
 
@@ -51,9 +51,10 @@ Conteo actual:
 3. Bestiary no muestra stats reales todavia.
    - `BestiaryDetailsResolver.resolveStats` devuelve `null`.
 
-4. Armadura fisica de items no entra al derived stat actual.
-   - `ItemDerivedStatsContributor.computeArmorHardDefense` devuelve `0.0D`.
-   - MDEF si toma atributo, DEF fisica no.
+4. Armadura fisica de items entra al derived stat actual como compatibilidad.
+   - `ItemDerivedStatsContributor.computeArmorHardDefense` suma `Attributes.ARMOR` de casco, pechera, pantalones y botas equipadas.
+   - Si el offhand es escudo, tambien puede aportar `Attributes.ARMOR` si el item lo declara.
+   - Pendiente: DEF/refine/armaduras RO finales por data propia.
 
 5. Persisten superficies historicas de formula entre `CoreDerivedStatsCalculator`, `CombatMath` y servicios en `combat/formula`.
    - Se deben seguir migrando a servicios puros comunes cuando se toque cada sistema.
@@ -85,8 +86,8 @@ Conteo actual:
 
 1. Cerrar reglas fisicas finas implementables sin UI: refine/upgrade bonus temporal si hay data y dual wield avanzado.
 2. Reemplazar la tabla ASPD provisional por tabla oficial validada si se busca paridad exacta.
-3. Completar estados RO remanentes y afinaciones: Cloaking futuro, SP drain de Hiding, consumibles reales y estados canonicos adicionales.
-4. Completar gaps minimos de items que afectan formulas: DEF fisica, efectos especiales de cards y resolver si equipment extra queda apagado hasta menu nuevo.
+3. Completar aplicadores y afinaciones de estados RO: skill Cloaking futura, fuentes reales de Stun/Sleep/Curse/Bleeding, consumibles reales y curas especificas.
+4. Completar gaps minimos de items que afectan formulas: DEF/refine RO final, efectos especiales de cards y resolver si equipment extra queda apagado hasta menu nuevo.
 5. Replantear inventario/equipment cuando el menu personalizado este disenado.
 
 ## Pruebas

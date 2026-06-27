@@ -59,7 +59,12 @@ Estados con logica propia actual:
 - `Chaos`: estado propio y puente desde Confusion/Nausea; mobs pierden target y se mueven erraticamente, players reciben empujes erraticos leves.
 - `Frozen`: cambia defensa elemental a Water 1 y se rompe con dano.
 - `Stone Curse`: cambia defensa elemental a Earth 1, inmoviliza con estado propio y se rompe con dano.
-- `Hiding`: estado propio; no usa `INVISIBILITY` como fuente de verdad, bloquea target normal, restringe movimiento y bloquea ataques/skills normales.
+- `Hiding`: estado propio; no usa `INVISIBILITY` como fuente de verdad, bloquea target normal, restringe movimiento, bloquea ataques/skills normales y drena SP segun data de skill.
+- `Cloaking`: estado propio futuro; comparte ocultamiento/reveal con Hiding, pero aun no tiene skill activa.
+- `Stun`: bloquea movimiento, ataques, skills/cast y deja FLEE efectivo en 0.
+- `Sleep`: bloquea movimiento, ataques, skills/cast, deja FLEE efectivo en 0 y se rompe con dano.
+- `Curse`: cancela Increase AGI, reduce ATK fisico a 75%, reduce AGI efectiva de compatibilidad y fuerza LUK efectivo a 0 para formulas del player.
+- `Bleeding`: drena HP periodicamente sin matar al objetivo por el tick del estado.
 
 ## Conversion de Efectos Vanilla
 
@@ -102,7 +107,9 @@ Regla:
 - Minecraft `MAX_HEALTH` se usa como puente runtime para que el HP maximo RO sea real en el motor vanilla.
 - Los stats primarios RO viven en atributos RagnarMMO: STR, AGI, VIT, INT, DEX, LUK.
 - `MAX_SP`, `MAX_MANA`, `CRIT_CHANCE`, `CRIT_DAMAGE`, `LIFE_STEAL`, `ARMOR_PIERCE`, `ARMOR_SHRED`, `OVERHEAL` y `MAGIC_DEFENSE` viven como atributos RagnarMMO.
-- Vanilla `ATTACK_DAMAGE`, `ARMOR` y similares solo se leen como fallback o compatibilidad cuando aun no hay item/equipment RO final. `MOVEMENT_SPEED` como efecto se convierte/remueve; el atributo de movimiento queda pendiente de politica final.
+- Vanilla `ATTACK_DAMAGE`, `ARMOR` y similares solo se leen como fallback o compatibilidad cuando aun no hay item/equipment RO final.
+- `Attributes.ARMOR` de piezas equipadas se traduce a Hard DEF fisica temporal: casco, pechera, pantalones, botas y offhand shield si declara armor.
+- `MOVEMENT_SPEED` como efecto se convierte/remueve; el atributo de movimiento queda pendiente de politica final.
 
 No hacer:
 
@@ -132,3 +139,5 @@ Comandos activos:
 - `/roadmin exp base set|add <value> [target]`.
 - `/roadmin exp job set|add <value> [target]`.
 - `/roadmin job set <novice|swordsman|mage|archer|thief|merchant|acolyte> [target]`.
+- `/roadmin status apply <poison|silence|blind|chaos|frozen|stone_curse|hiding|cloaking|stun|sleep|curse|bleeding> <duration_ticks> [target]`.
+- `/roadmin status clear <poison|silence|blind|chaos|frozen|stone_curse|hiding|cloaking|stun|sleep|curse|bleeding> [target]`.

@@ -91,7 +91,7 @@ Estado actual:
 
 Pendiente:
 
-- Cloaking futuro debe usar estado propio equivalente, no `INVISIBILITY`.
+- Cloaking futuro ya tiene estado runtime propio; falta skill/aplicador real y no debe depender de `INVISIBILITY`.
 
 ## Velocidad
 
@@ -119,5 +119,5 @@ Decision:
 ## Trabajo pendiente
 
 - Crear `RoStatusType` o equivalente para estados RO canonicos si el set de estados sigue creciendo.
-- Completar equivalencias futuras para estados RO que aun no existen: Curse, Sleep, Stun, Bleeding y variantes de slow/curse.
+- Completar aplicadores y equivalencias futuras para estados RO ya creados: Curse, Sleep, Stun, Bleeding y variantes de slow/curse.
 - Revisar efectos de otros mods cuando aparezcan y mapearlos a estados RO o removerlos.
