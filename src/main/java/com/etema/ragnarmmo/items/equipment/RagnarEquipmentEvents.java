@@ -1,6 +1,7 @@
 package com.etema.ragnarmmo.items.equipment;
 
 import com.etema.ragnarmmo.items.RagnarMMOItems;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,6 +15,9 @@ public final class RagnarEquipmentEvents {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            if (CharacterSelectionService.isSelectionRequired(player)) {
+                return;
+            }
             RagnarEquipmentSync.sync(player);
         }
     }

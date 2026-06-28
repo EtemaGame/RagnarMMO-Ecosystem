@@ -12,14 +12,15 @@ Estado al 2026-06-24 despues de consolidar todo en un solo mod Forge (`modId: ra
 
 Conteo actual:
 
-- 375 archivos Java.
-- 353 recursos.
-- 15 tests Java.
+- 397 archivos Java.
+- 362 recursos.
+- 16 tests Java.
 
 ## Funcional
 
 - Mod unico `ragnarmmo`, con entrypoint central y subsistemas internos.
 - Core: stats base, progresion, atributos compartidos, configs, red, capacidades y perfil universal de mobs.
+- Player: selector bloqueante de personajes con 3 slots por cuenta y persistencia separada por personaje.
 - Combat: formulas RO, hit/flee/crit, defensa, elementos, tamano, status, aggro, combat mode y handlers de dano.
 - Jobs: clases Novice/first class, skill trees por datapack, puntos, hotbar, packets y cambio de clase inicial.
 - Items: reglas de item/equipo, cards, modifiers, loot modifiers y base de capability de equipo. El catalogo visual actual no es definitivo.
@@ -33,7 +34,7 @@ Conteo actual:
 - Stats y combate: prioridad actual. Deben quedar cerradas las formulas, subida de stats, derived stats y efectos reales sobre el jugador.
 - Reset de skills/stats: por ahora se manejara por comandos, no por pociones ni menus.
 - Skills: mantener logica y funcionamiento; efectos visuales, sonidos y polish quedan fuera de alcance por ahora.
-- Inventario/equipment: el sistema actual con capability es transitorio. Se reemplazara por menus personalizados que intercepten/reemplacen el inventario vanilla.
+- Inventario/equipment: el sistema actual con capability es transitorio. El character select ya separa inventario/equipment por personaje, pero el menu final se reemplazara por menus personalizados que intercepten/reemplacen el inventario vanilla.
 - Items visuales: el catalogo actual puede eliminarse o reescribirse cuando se defina que items reales quedan.
 - Config cliente: quedara en edicion constante y se reescribira al final.
 

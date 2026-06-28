@@ -6,6 +6,7 @@ import com.etema.ragnarmmo.core.config.RagnarClientConfigs;
 import com.etema.ragnarmmo.common.api.attributes.RagnarAttributes;
 import com.etema.ragnarmmo.common.net.Network;
 import com.etema.ragnarmmo.core.client.ClientCoreSyncHandler;
+import com.etema.ragnarmmo.player.character.net.CharacterNetwork;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.config.ModConfig;
@@ -26,6 +27,7 @@ public final class RagnarMMOCore {
         var modBus = FMLJavaModLoadingContext.get().getModEventBus();
         RagnarAttributes.register(modBus);
         Network.registerCorePackets();
+        Network.registerPackets(CharacterNetwork::register);
         DerivedStatsService.register(CoreDerivedStatsCalculator::compute);
         FMLJavaModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RagnarCoreConfigs.SERVER_SPEC);
         FMLJavaModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, RagnarClientConfigs.CLIENT_SPEC);

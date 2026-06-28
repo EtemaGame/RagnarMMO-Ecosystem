@@ -3,6 +3,7 @@ package com.etema.ragnarmmo.combat.net;
 import com.etema.ragnarmmo.combat.api.BasicAttackSource;
 import com.etema.ragnarmmo.combat.api.RagnarAttackRequest;
 import com.etema.ragnarmmo.combat.engine.RagnarCombatEngine;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
@@ -28,7 +29,7 @@ public record ServerboundRagnarBasicAttackPacket(int sequenceId, int targetEntit
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
-            if (player != null) {
+            if (player != null && !CharacterSelectionService.isSelectionRequired(player)) {
                 RagnarCombatEngine.get().processBasicAttackRequest(player,
                         RagnarAttackRequest.singleTarget(sequenceId, targetEntityId, offHand),
                         BasicAttackSource.CLIENT_PACKET);

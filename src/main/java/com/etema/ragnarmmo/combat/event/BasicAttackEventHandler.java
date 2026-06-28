@@ -5,6 +5,7 @@ import com.etema.ragnarmmo.combat.api.BasicAttackSource;
 import com.etema.ragnarmmo.combat.api.RagnarAttackRequest;
 import com.etema.ragnarmmo.combat.engine.RagnarCombatEngine;
 import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,7 +21,7 @@ public final class BasicAttackEventHandler {
         if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        if (RoCombatStatusService.blocksAction(player)) {
+        if (CharacterSelectionService.isSelectionRequired(player) || RoCombatStatusService.blocksAction(player)) {
             event.setCanceled(true);
             return;
         }

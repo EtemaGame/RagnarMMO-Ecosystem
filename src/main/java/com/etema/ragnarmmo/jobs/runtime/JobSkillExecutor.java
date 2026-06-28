@@ -10,6 +10,7 @@ import com.etema.ragnarmmo.jobs.net.JobSkillsSyncService;
 import com.etema.ragnarmmo.jobs.player.PlayerJobSkillsProvider;
 import com.etema.ragnarmmo.combat.formula.ArcherSkillFormulaService;
 import com.etema.ragnarmmo.combat.status.RoCombatStatusService;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -26,6 +27,9 @@ public final class JobSkillExecutor {
     public static boolean use(ServerPlayer player, ResourceLocation skillId) {
         if (player == null || skillId == null) {
             return false;
+        }
+        if (CharacterSelectionService.isSelectionRequired(player)) {
+            return reject(player, "Select a character first.");
         }
 
         var definitionOpt = SkillDefinitionRegistry.get(skillId);

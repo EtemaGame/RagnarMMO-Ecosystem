@@ -14,6 +14,7 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 
 /**
  * Capability provider for Life Skills.
@@ -72,6 +73,9 @@ public class LifeSkillCapability implements ICapabilityProvider, INBTSerializabl
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            if (CharacterSelectionService.isSelectionRequired(player)) {
+                return;
+            }
             syncToClient(player);
         }
     }

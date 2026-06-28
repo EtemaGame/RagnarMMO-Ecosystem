@@ -4,6 +4,7 @@ import com.etema.ragnarmmo.combat.api.CombatActionType;
 import com.etema.ragnarmmo.combat.api.CombatRequestContext;
 import com.etema.ragnarmmo.combat.api.CombatTargetCandidate;
 import com.etema.ragnarmmo.combat.engine.RagnarCombatEngine;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
@@ -27,7 +28,7 @@ public record ServerboundRagnarSkillUsePacket(int sequenceId, String skillId, in
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
-            if (player == null) {
+            if (player == null || CharacterSelectionService.isSelectionRequired(player)) {
                 return;
             }
             RagnarCombatEngine.get().handleSkillUseRequest(new CombatRequestContext(

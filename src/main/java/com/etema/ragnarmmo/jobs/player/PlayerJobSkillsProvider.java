@@ -3,6 +3,7 @@ package com.etema.ragnarmmo.jobs.player;
 import com.etema.ragnarmmo.common.api.skills.RagnarSkillsAPI;
 import com.etema.ragnarmmo.jobs.RagnarMMOJobs;
 import com.etema.ragnarmmo.jobs.net.JobSkillsSyncService;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -65,6 +66,9 @@ public final class PlayerJobSkillsProvider implements ICapabilityProvider, INBTS
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            if (CharacterSelectionService.isSelectionRequired(player)) {
+                return;
+            }
             JobSkillsSyncService.sync(player);
         }
     }

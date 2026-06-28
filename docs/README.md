@@ -13,6 +13,7 @@ Documentacion viva del mod unico RagnarMMO.
 ### Sistemas y Reglas
 - `VANILLA_EFFECTS_POLICY.md`: politica sobre el uso o reemplazo de efectos de pociones/mods vanilla.
 - `RO_RUNTIME_RULES.md`: reglas activas de runtime para ASPD, estados RO, efectos vanilla y atributos vanilla portados.
+- `CharacterSelect.md`: reglas activas del selector bloqueante de personajes.
 - `GROUND_CELLS.md`: regla de dimensionamiento espacial para celdas/areas (1 RO cell = 1 bloque Minecraft).
 - `CARDS.md`: estado actual de cards, modifiers soportados y efecto runtime de cada card.
 - `Inventory.md`: direccion e ideas para la reimplementacion del sistema de inventario y equipo.

@@ -20,6 +20,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import com.etema.ragnarmmo.player.stats.compute.StatResolutionService;
+import com.etema.ragnarmmo.player.character.runtime.CharacterSelectionService;
 
 @Mod.EventBusSubscriber(modid = PlayerStatsModule.MOD_ID)
 public class PlayerStatsProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
@@ -74,6 +75,9 @@ public class PlayerStatsProvider implements ICapabilityProvider, INBTSerializabl
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            if (CharacterSelectionService.isSelectionRequired(player)) {
+                return;
+            }
             resolveAndSync(player);
             fullHeal(player);
         }
